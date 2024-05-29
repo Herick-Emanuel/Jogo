@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { Rect } from 'react-konva';
-import useImage from 'use-image';
+import { useImage } from 'react-konva-utils'
 
 const Ladder = ({ x, y, width, height }) => {
   const [image] = useImage('ladder.png');

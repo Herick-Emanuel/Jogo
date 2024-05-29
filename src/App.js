@@ -4,6 +4,8 @@ import Player from './components/player';
 import Platform from './components/platform';
 import Ground from './components/ground';
 import Ladder from './components/ladder';
+import Sign from './components/sign';
+import DialogBox from './components/dialogbox';
 
 const GRAVITY = 0.5;
 const JUMP_POWER = -10;
@@ -22,8 +24,13 @@ function App() {
   });
 
   const [cameraX, setCameraX] = useState(0);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
-  const ground = { x: 0, y: window.innerHeight - 40, width: window.innerWidth, height: 50 };
+  const ground = [
+    { x: 0, y: window.innerHeight - 40, width: 2000, height: 50 },
+    { x: 3900, y: window.innerHeight - 40, width: 450, height: 50 },
+  ];
+
   const platforms = [
     { x: 2080, y: window.innerHeight - 90, width: 200, height: 50 },
     { x: 2400, y: window.innerHeight - 150, width: 300, height: 50 },
@@ -39,10 +46,15 @@ function App() {
     { x: 5000, y: window.innerHeight - 650, width: 350, height: 50 },
     { x: 5350, y: window.innerHeight - 700, width: 150, height: 50 },
   ];
+
   const ladders = [
     { x: 3300, y: window.innerHeight - 300, width: 64, height: 150 },
     { x: 3500, y: window.innerHeight - 500, width: 64, height: 150 },
     { x: 4750, y: window.innerHeight - 600, width: 64, height: 350 },
+  ];
+
+  const signs = [
+    { x: 1950, y: window.innerHeight - 90, width: 100, height: 50, text: 'PLACA' },
   ];
 
   useEffect(() => {
@@ -57,6 +69,17 @@ function App() {
         setPlayer((prev) => ({ ...prev, velY: -PLAYER_SPEED }));
       } else if (e.key === 'ArrowDown' && player.onLadder) {
         setPlayer((prev) => ({ ...prev, velY: PLAYER_SPEED }));
+      } else if (e.key === 'Enter') {
+        signs.forEach((sign) => {
+          if (
+            player.x + PLAYER_WIDTH > sign.x &&
+            player.x < sign.x + sign.width &&
+            player.y + PLAYER_HEIGHT > sign.y &&
+            player.y < sign.y + sign.height
+          ) {
+            setDialogOpen(true);
+          }
+        });
       }
     };
 
@@ -75,7 +98,7 @@ function App() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [player.onGround, player.onLadder]);
+  }, [player.onGround, player.onLadder, player.x, player.y, signs]);
 
   useEffect(() => {
     const gameLoop = setInterval(() => {
@@ -86,20 +109,20 @@ function App() {
         let onGround = false;
         let onLadder = false;
 
-        // Colisão com o chão
-        if (
-          newY + PLAYER_HEIGHT > ground.y &&
-          prev.y + PLAYER_HEIGHT <= ground.y &&
-          newX + PLAYER_WIDTH > ground.x &&
-          newX < ground.x + ground.width
-        ) {
-          newY = ground.y - PLAYER_HEIGHT;
-          newVelY = 0;
-          onGround = true;
-        }
+        ground.forEach((g) => {
+          if (
+            newY + PLAYER_HEIGHT > g.y &&
+            prev.y + PLAYER_HEIGHT <= g.y &&
+            newX + PLAYER_WIDTH > g.x &&
+            newX < g.x + g.width
+          ) {
+            newY = g.y - PLAYER_HEIGHT;
+            newVelY = 0;
+            onGround = true;
+          }
+        });
 
         platforms.forEach((platform) => {
-          // Colisão vertical - descendo
           if (
             newY + PLAYER_HEIGHT > platform.y &&
             prev.y + PLAYER_HEIGHT <= platform.y &&
@@ -110,7 +133,6 @@ function App() {
             newVelY = 0;
             onGround = true;
           }
-          // Colisão vertical - subindo
           if (
             newY < platform.y + platform.height &&
             prev.y >= platform.y + platform.height &&
@@ -120,7 +142,6 @@ function App() {
             newY = platform.y + platform.height;
             newVelY = 0;
           }
-          // Colisão horizontal
           if (
             newX + PLAYER_WIDTH > platform.x &&
             newX < platform.x + platform.width &&
@@ -136,7 +157,6 @@ function App() {
         });
 
         ladders.forEach((ladder) => {
-          // Verificação de entrada na escada
           if (
             newX + PLAYER_WIDTH > ladder.x &&
             newX < ladder.x + ladder.width &&
@@ -144,38 +164,43 @@ function App() {
             newY < ladder.y + ladder.height
           ) {
             onLadder = true;
-            newVelY = prev.velY; // Manter a velocidade vertical ao subir/descer a escada
+            newVelY = prev.velY;
           }
         });
 
-        // Atualizando a posição da câmera
         let newCameraX = newX - window.innerWidth / 2 + PLAYER_WIDTH / 2;
-        if (newCameraX < 0) newCameraX = 0; // Limitar para não mostrar área negativa
+        if (newCameraX < 0) newCameraX = 0;
         return { ...prev, x: newX, y: newY, velY: newVelY, onGround: onGround, onLadder: onLadder };
       });
 
       setCameraX((prev) => {
         let newCameraX = player.x - window.innerWidth / 2 + PLAYER_WIDTH / 2;
-        if (newCameraX < 0) newCameraX = 0; // Limitar para não mostrar área negativa
+        if (newCameraX < 0) newCameraX = 0;
         return newCameraX;
       });
     }, 16);
 
     return () => clearInterval(gameLoop);
-  }, [platforms, ladders]);
+  }, [player.x, player.y, platforms, ladders]);
 
   return (
     <Stage width={window.innerWidth} height={window.innerHeight}>
       <Layer x={-cameraX}>
-        <Ground {...ground} />
+        {ground.map((g, i) => (
+          <Ground key={i} {...g} />
+        ))}
         {platforms.map((platform, i) => (
           <Platform key={i} {...platform} />
         ))}
         {ladders.map((ladder, i) => (
           <Ladder key={i} {...ladder} />
         ))}
+        {signs.map((sign, i) => (
+          <Sign key={i} {...sign} />
+        ))}
         <Player x={player.x} y={player.y} />
       </Layer>
+      {dialogOpen && <DialogBox text="Você interagiu com a placa!" onClose={() => setDialogOpen(false)} />}
     </Stage>
   );
 }
