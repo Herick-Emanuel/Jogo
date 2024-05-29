@@ -3,7 +3,7 @@ import { Image } from 'react-konva';
 import { useImage } from 'react-konva-utils'
 
 const Player = ({ x, y }) => {
-    const [image] = useImage('player.PNG');
+    const [image] = useImage('player.png');
     const playerRef = useRef();
 
   useEffect(() => {

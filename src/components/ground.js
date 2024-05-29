@@ -1,14 +1,14 @@
 import React, { useRef, useEffect } from 'react';
 import { Rect } from 'react-konva';
-import { useImage } from 'react-konva-utils'
+import useImage from 'use-image';
 
-const Platform = ({ x, y, width, height }) => {
-  const [image] = useImage('platform.png');
-  const platformRef = useRef();
+const Ground = ({ x, y, width, height }) => {
+  const [image] = useImage('ground.png');
+  const groundRef = useRef();
 
   useEffect(() => {
-    if (platformRef.current) {
-      platformRef.current.cache();
+    if (groundRef.current) {
+      groundRef.current.cache();
     }
   }, [image]);
 
@@ -20,9 +20,9 @@ const Platform = ({ x, y, width, height }) => {
       height={height}
       fillPatternImage={image}
       fillPatternRepeat="repeat"
-      ref={platformRef}
+      ref={groundRef}
     />
   );
 };
 
-export default Platform;
+export default Ground;
