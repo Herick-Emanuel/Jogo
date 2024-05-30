@@ -3,6 +3,7 @@ import { Stage, Layer } from "react-konva";
 import Player from "./components/player";
 import Platform from "./components/platform";
 import Ground from "./components/ground/ground";
+import Ground2 from "./components/ground/ground2";
 import Ladder from "./components/ladder";
 import Sign from "./components/sign";
 import DialogBox from "./components/dialogbox";
@@ -12,7 +13,6 @@ const JUMP_POWER = -10;
 const PLAYER_WIDTH = 50;
 const PLAYER_HEIGHT = 50;
 const PLAYER_SPEED = 5;
-const TURNAROUND_DELAY = 0;
 
 function App() {
   const [player, setPlayer] = useState({
@@ -34,9 +34,15 @@ function App() {
   const stageRef = useRef(null);
 
   const ground = [
-    { x: 0, y: window.innerHeight - 40, width: 2000, height: 50 },
-    { x: 3900, y: window.innerHeight - 40, width: 450, height: 50 },
-    { x: 3600, y: window.innerHeight - 40, width: 150, height: 50 },
+    { x: 0, y: window.innerHeight - 40, width: 2000, height: 64 },
+    { x: 3900, y: window.innerHeight - 40, width: 450, height: 64 },
+    { x: 3600, y: window.innerHeight - 40, width: 150, height: 64 },
+  ];
+
+  const ground2 = [
+    { x: 0, y: window.innerHeight - -15, width: 2000, height: 128 },
+    { x: 3900, y: window.innerHeight - -15, width: 450, height: 128 },
+    { x: 3600, y: window.innerHeight - -15, width: 150, height: 128 },
   ];
 
   const platforms = [
@@ -153,76 +159,93 @@ function App() {
         let onGround = false;
         let onLadder = false;
 
-        ground.forEach((g) => {
-          if (
-            newY + PLAYER_HEIGHT > g.y &&
-            prev.y + PLAYER_HEIGHT <= g.y &&
-            newX + PLAYER_WIDTH > g.x &&
-            newX < g.x + g.width
-          ) {
-            newY = g.y - PLAYER_HEIGHT;
-            newVelY = 0;
-            onGround = true;
-          }
-        });
+        // Função para verificar colisões com o chão
+        const checkGroundCollision = () => {
+          ground.forEach((g) => {
+            if (
+              newY + PLAYER_HEIGHT > g.y &&
+              prev.y + PLAYER_HEIGHT <= g.y &&
+              newX + PLAYER_WIDTH > g.x &&
+              newX < g.x + g.width
+            ) {
+              newY = g.y - PLAYER_HEIGHT;
+              newVelY = 0;
+              onGround = true;
+            }
+          });
+        };
 
-        platforms.forEach((platform) => {
-          if (
-            newY + PLAYER_HEIGHT > platform.y &&
-            prev.y + PLAYER_HEIGHT <= platform.y &&
-            newX + PLAYER_WIDTH > platform.x &&
-            newX < platform.x + platform.width
-          ) {
-            newY = platform.y - PLAYER_HEIGHT;
-            newVelY = 0;
-            onGround = true;
-          }
-          if (
-            newY < platform.y + platform.height &&
-            prev.y >= platform.y + platform.height &&
-            newX + PLAYER_WIDTH > platform.x &&
-            newX < platform.x + platform.width
-          ) {
-            newY = platform.y + platform.height;
-            newVelY = 0;
-          }
-          if (
-            newX + PLAYER_WIDTH > platform.x &&
-            newX < platform.x + platform.width &&
-            newY + PLAYER_HEIGHT > platform.y &&
-            newY < platform.y + platform.height
-          ) {
-            if (prev.velX > 0) {
-              newX = platform.x - PLAYER_WIDTH;
-            } else if (prev.velX < 0) {
-              newX = platform.x + platform.width;
+        // Função para verificar colisões com plataformas
+        const checkPlatformCollision = () => {
+          platforms.forEach((platform) => {
+            if (
+              newY + PLAYER_HEIGHT > platform.y &&
+              prev.y + PLAYER_HEIGHT <= platform.y &&
+              newX + PLAYER_WIDTH > platform.x &&
+              newX < platform.x + platform.width
+            ) {
+              newY = platform.y - PLAYER_HEIGHT;
+              newVelY = 0;
+              onGround = true;
+            }
+            if (
+              newY < platform.y + platform.height &&
+              prev.y >= platform.y + platform.height &&
+              newX + PLAYER_WIDTH > platform.x &&
+              newX < platform.x + platform.width
+            ) {
+              newY = platform.y + platform.height;
+              newVelY = 0;
+            }
+            if (
+              newX + PLAYER_WIDTH > platform.x &&
+              newX < platform.x + platform.width &&
+              newY + PLAYER_HEIGHT > platform.y &&
+              newY < platform.y + platform.height
+            ) {
+              if (prev.velX > 0) {
+                newX = platform.x - PLAYER_WIDTH;
+              } else if (prev.velX < 0) {
+                newX = platform.x + platform.width;
+              }
+            }
+          });
+        };
+
+        // Função para verificar colisões com escadas
+        const checkLadderCollision = () => {
+          ladders.forEach((ladder) => {
+            if (
+              newX + PLAYER_WIDTH > ladder.x &&
+              newX < ladder.x + ladder.width &&
+              newY + PLAYER_HEIGHT > ladder.y &&
+              newY < ladder.y + ladder.height
+            ) {
+              onLadder = true;
+              newVelY = prev.velY;
+            }
+          });
+        };
+
+        // Função para verificar se o personagem está fora do sinal
+        const checkSignCollision = () => {
+          if (currentSign) {
+            if (
+              newX + PLAYER_WIDTH < currentSign.x ||
+              newX > currentSign.x + currentSign.width ||
+              newY + PLAYER_HEIGHT < currentSign.y ||
+              newY > currentSign.y + currentSign.height
+            ) {
+              setDialogOpen(false);
+              setCurrentSign(null);
             }
           }
-        });
+        };
 
-        ladders.forEach((ladder) => {
-          if (
-            newX + PLAYER_WIDTH > ladder.x &&
-            newX < ladder.x + ladder.width &&
-            newY + PLAYER_HEIGHT > ladder.y &&
-            newY < ladder.y + ladder.height
-          ) {
-            onLadder = true;
-            newVelY = prev.velY;
-          }
-        });
-
-        if (currentSign) {
-          if (
-            newX + PLAYER_WIDTH < currentSign.x ||
-            newX > currentSign.x + currentSign.width ||
-            newY + PLAYER_HEIGHT < currentSign.y ||
-            newY > currentSign.y + currentSign.height
-          ) {
-            setDialogOpen(false);
-            setCurrentSign(null);
-          }
-        }
+        checkGroundCollision();
+        checkPlatformCollision();
+        checkLadderCollision();
+        checkSignCollision();
 
         let newCameraX = newX - window.innerWidth / 2 + PLAYER_WIDTH / 2;
         if (newCameraX < 0) newCameraX = 0;
@@ -264,7 +287,7 @@ function App() {
       x: -(mousePointTo.x - stage.getPointerPosition().x / newScale) * newScale,
       y: -(mousePointTo.y - stage.getPointerPosition().y / newScale) * newScale,
     };
-    
+
     stage.position(newPos);
     stage.batchDraw();
   };
@@ -291,6 +314,9 @@ function App() {
       <Layer>
         {ground.map((g, i) => (
           <Ground key={i} {...g} />
+        ))}
+        {ground2.map((g, i) => (
+          <Ground2 key={i} {...g} />
         ))}
         {platforms.map((platform, i) => (
           <Platform key={i} {...platform} />
