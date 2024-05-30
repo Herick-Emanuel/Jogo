@@ -23,6 +23,7 @@ function App() {
     onGround: true,
     onLadder: false,
     facing: "right",
+    isMoving: false,  
   });
 
   const [cameraX, setCameraX] = useState(0);
@@ -101,12 +102,14 @@ function App() {
           ...prev,
           velX: -PLAYER_SPEED,
           facing: "left",
+          isMoving: true,
         }));
       } else if (e.key === "ArrowRight") {
         setPlayer((prev) => ({
           ...prev,
           velX: PLAYER_SPEED,
           facing: "right",
+          isMoving: true,
         }));
       } else if (e.key === " " && player.onGround && !player.onLadder) {
         setPlayer((prev) => ({ ...prev, velY: JUMP_POWER, onGround: false }));
@@ -135,7 +138,7 @@ function App() {
 
     const handleKeyUp = (e) => {
       if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-        setPlayer((prev) => ({ ...prev, velX: 0 }));
+        setPlayer((prev) => ({ ...prev, velX: 0, isMoving: false }));
       } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
         setPlayer((prev) => ({ ...prev, velY: 0 }));
       }
@@ -327,7 +330,7 @@ function App() {
         {signs.map((sign, i) => (
           <Sign key={i} {...sign} />
         ))}
-        <Player x={player.x} y={player.y} />
+      <Player x={player.x} y={player.y} isMoving={player.isMoving} />
       </Layer>
       {dialogOpen && (
         <Layer>

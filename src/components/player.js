@@ -1,18 +1,51 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Image } from 'react-konva';
-import { useImage } from 'react-konva-utils'
 
-const Player = ({ x, y }) => {
-    const [image] = useImage('player.png');
-    const playerRef = useRef();
+const Player = ({ x, y, isMoving }) => {
+  const [frameIndex, setFrameIndex] = useState(0);
+  const [images, setImages] = useState([null, null]);
 
   useEffect(() => {
-    if (playerRef.current) {
-      playerRef.current.cache();
-    }
-  }, [image]);
+    const loadImages = () => {
+      const img1 = new window.Image();
+      const img2 = new window.Image();
+      img1.src = 'player.png';
+      img2.src = 'warrior.png';
 
-  return <Image image={image} x={x} y={y} width={50} height={50} ref={playerRef} />;
+      img1.onload = () => {
+        setImages((prevImages) => [img1, prevImages[1]]);
+      };
+
+      img2.onload = () => {
+        setImages((prevImages) => [prevImages[0], img2]);
+      };
+    };
+
+    loadImages();
+  }, []);
+
+  useEffect(() => {
+    let animationInterval;
+    if (isMoving) {
+      animationInterval = setInterval(() => {
+        setFrameIndex((prevFrameIndex) => (prevFrameIndex + 1) % 2);
+      }, 150);
+    } else {
+      setFrameIndex(0);
+    }
+
+    return () => clearInterval(animationInterval);
+  }, [isMoving]);
+
+  return (
+    <Image
+      image={images[frameIndex]}
+      x={x}
+      y={y}
+      width={50}
+      height={50}
+    />
+  );
 };
 
 export default Player;
