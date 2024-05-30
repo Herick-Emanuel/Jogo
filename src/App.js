@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Stage, Layer } from "react-konva";
 import Player from "./components/player";
 import Platform from "./components/platform";
-import Ground from "./components/ground";
+import Ground from "./components/ground/ground";
 import Ladder from "./components/ladder";
 import Sign from "./components/sign";
 import DialogBox from "./components/dialogbox";
@@ -12,15 +12,17 @@ const JUMP_POWER = -10;
 const PLAYER_WIDTH = 50;
 const PLAYER_HEIGHT = 50;
 const PLAYER_SPEED = 5;
+const TURNAROUND_DELAY = 0;
 
 function App() {
   const [player, setPlayer] = useState({
     x: 50,
-    y: window.innerHeight - PLAYER_HEIGHT - 101,
+    y: window.innerHeight - PLAYER_HEIGHT - 41,
     velX: 0,
     velY: 0,
     onGround: true,
     onLadder: false,
+    facing: "right",
   });
 
   const [cameraX, setCameraX] = useState(0);
@@ -29,28 +31,30 @@ function App() {
   const [dialogText, setDialogText] = useState("");
   const [currentSign, setCurrentSign] = useState(null);
 
+  const stageRef = useRef(null);
+
   const ground = [
-    { x: 0, y: window.innerHeight - 50, width: 2000, height: 64 },
-    { x: 3900, y: window.innerHeight - 40, width: 450, height: 64 },
-    { x: 3600, y: window.innerHeight - 40, width: 150, height: 64 },
+    { x: 0, y: window.innerHeight - 40, width: 2000, height: 50 },
+    { x: 3900, y: window.innerHeight - 40, width: 450, height: 50 },
+    { x: 3600, y: window.innerHeight - 40, width: 150, height: 50 },
   ];
 
   const platforms = [
-    { x: 2080, y: window.innerHeight - 90, width: 200, height: 64 },
-    { x: 2400, y: window.innerHeight - 150, width: 300, height: 64 },
-    { x: 2850, y: window.innerHeight - 200, width: 150, height: 64 },
-    { x: 3150, y: window.innerHeight - 150, width: 300, height: 64 },
-    { x: 3200, y: window.innerHeight - 300, width: 100, height: 64 },
-    { x: 3400, y: window.innerHeight - 350, width: 250, height: 64 },
-    { x: 3550, y: window.innerHeight - 500, width: 200, height: 64 },
-    { x: 3450, y: window.innerHeight - 100, width: 150, height: 64 },
-    { x: 3900, y: window.innerHeight - 550, width: 150, height: 64 },
-    { x: 4200, y: window.innerHeight - 200, width: 300, height: 64 },
-    { x: 4650, y: window.innerHeight - 250, width: 200, height: 64 },
-    { x: 4810, y: window.innerHeight - 600, width: 100, height: 64 },
-    { x: 5000, y: window.innerHeight - 650, width: 350, height: 64 },
-    { x: 5350, y: window.innerHeight - 700, width: 150, height: 64 },
-    { x: 5450, y: window.innerHeight - 950, width: 150, height: 64 },
+    { x: 2080, y: window.innerHeight - 90, width: 200, height: 50 },
+    { x: 2400, y: window.innerHeight - 150, width: 300, height: 50 },
+    { x: 2850, y: window.innerHeight - 200, width: 150, height: 50 },
+    { x: 3150, y: window.innerHeight - 150, width: 300, height: 50 },
+    { x: 3200, y: window.innerHeight - 300, width: 100, height: 50 },
+    { x: 3400, y: window.innerHeight - 350, width: 250, height: 50 },
+    { x: 3550, y: window.innerHeight - 500, width: 200, height: 50 },
+    { x: 3450, y: window.innerHeight - 100, width: 150, height: 50 },
+    { x: 3900, y: window.innerHeight - 550, width: 150, height: 50 },
+    { x: 4200, y: window.innerHeight - 200, width: 300, height: 50 },
+    { x: 4650, y: window.innerHeight - 250, width: 200, height: 50 },
+    { x: 4810, y: window.innerHeight - 600, width: 100, height: 50 },
+    { x: 5000, y: window.innerHeight - 650, width: 350, height: 50 },
+    { x: 5350, y: window.innerHeight - 700, width: 150, height: 50 },
+    { x: 5450, y: window.innerHeight - 950, width: 150, height: 50 },
   ];
 
   const ladders = [
@@ -63,7 +67,7 @@ function App() {
   const signs = [
     {
       x: 1900,
-      y: window.innerHeight - 100,
+      y: window.innerHeight - 90,
       width: 64,
       height: 50,
       text: "Bem-vindo ao mundo do caos bravo guerreiro! Espero que esteja pronto para enfrentar o mundo de aventura que foi preparado para você",
@@ -87,9 +91,17 @@ function App() {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "ArrowLeft") {
-        setPlayer((prev) => ({ ...prev, velX: -PLAYER_SPEED }));
+        setPlayer((prev) => ({
+          ...prev,
+          velX: -PLAYER_SPEED,
+          facing: "left",
+        }));
       } else if (e.key === "ArrowRight") {
-        setPlayer((prev) => ({ ...prev, velX: PLAYER_SPEED }));
+        setPlayer((prev) => ({
+          ...prev,
+          velX: PLAYER_SPEED,
+          facing: "right",
+        }));
       } else if (e.key === " " && player.onGround && !player.onLadder) {
         setPlayer((prev) => ({ ...prev, velY: JUMP_POWER, onGround: false }));
       } else if (e.key === "ArrowUp" && player.onLadder) {
@@ -97,13 +109,16 @@ function App() {
       } else if (e.key === "ArrowDown" && player.onLadder) {
         setPlayer((prev) => ({ ...prev, velY: PLAYER_SPEED }));
       } else if (e.key === "Enter") {
+        console.log("Enter key pressed");
         signs.forEach((sign) => {
+          console.log(`Checking sign at (${sign.x}, ${sign.y})`);
           if (
             player.x + PLAYER_WIDTH > sign.x &&
             player.x < sign.x + sign.width &&
             player.y + PLAYER_HEIGHT > sign.y &&
             player.y < sign.y + sign.height
           ) {
+            console.log("Sign detected:", sign.text);
             setDialogText(sign.text);
             setDialogOpen(true);
             setCurrentSign(sign);
@@ -210,9 +225,12 @@ function App() {
         }
 
         let newCameraX = newX - window.innerWidth / 2 + PLAYER_WIDTH / 2;
-        let newCameraY = newY - window.innerHeight / 2 + PLAYER_HEIGHT / 2;
         if (newCameraX < 0) newCameraX = 0;
+        let newCameraY = newY - window.innerHeight / 2 + PLAYER_HEIGHT / 2;
         if (newCameraY < 0) newCameraY = 0;
+
+        setCameraX(newCameraX);
+        setCameraY(newCameraY);
 
         return {
           ...prev,
@@ -223,26 +241,54 @@ function App() {
           onLadder: onLadder,
         };
       });
-
-      setCameraX((prev) => {
-        let newCameraX = player.x - window.innerWidth / 2 + PLAYER_WIDTH / 2;
-        if (newCameraX < 0) newCameraX = 0;
-        return newCameraX;
-      });
-
-      setCameraY((prev) => {
-        let newCameraY = player.y - window.innerHeight / 2 + PLAYER_HEIGHT / 2;
-        if (newCameraY < 0) newCameraY = 0;
-        return newCameraY;
-      });
     }, 16);
 
     return () => clearInterval(gameLoop);
   }, [player.x, player.y, platforms, ladders, currentSign]);
 
+  const handleZoom = (e) => {
+    e.evt.preventDefault();
+    const zoomFactor = e.evt.deltaY > 0 ? 0.9 : 1.1;
+    const stage = stageRef.current;
+    const oldScale = stage.scaleX();
+    const mousePointTo = {
+      x: stage.getPointerPosition().x / oldScale - stage.x() / oldScale,
+      y: stage.getPointerPosition().y / oldScale - stage.y() / oldScale,
+    };
+
+    const newScale = oldScale * zoomFactor;
+
+    stage.scale({ x: newScale, y: newScale });
+
+    const newPos = {
+      x: -(mousePointTo.x - stage.getPointerPosition().x / newScale) * newScale,
+      y: -(mousePointTo.y - stage.getPointerPosition().y / newScale) * newScale,
+    };
+    
+    stage.position(newPos);
+    stage.batchDraw();
+  };
+
+  useEffect(() => {
+    const stage = stageRef.current;
+    stage.on("wheel", handleZoom);
+    return () => {
+      stage.off("wheel", handleZoom);
+    };
+  }, []);
+
   return (
-    <Stage width={window.innerWidth} height={window.innerHeight}>
-      <Layer x={-cameraX} y={-cameraY}>
+    <Stage
+      ref={stageRef}
+      width={window.innerWidth}
+      height={window.innerHeight}
+      scaleX={1}
+      scaleY={1}
+      draggable
+      x={-cameraX}
+      y={-cameraY}
+    >
+      <Layer>
         {ground.map((g, i) => (
           <Ground key={i} {...g} />
         ))}
@@ -259,7 +305,12 @@ function App() {
       </Layer>
       {dialogOpen && (
         <Layer>
-          <DialogBox text={dialogText} onClose={() => setDialogOpen(false)} />
+          <DialogBox
+            x={cameraX}
+            y={cameraY}
+            text={dialogText}
+            onClose={() => setDialogOpen(false)}
+          />
         </Layer>
       )}
     </Stage>

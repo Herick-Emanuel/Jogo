@@ -1,12 +1,12 @@
 import React from "react";
 import { Rect, Text, Group } from "react-konva";
 
-const DialogBox = ({ text, onClose }) => {
+const DialogBox = ({ x, y, text, onClose }) => {
   return (
     <Group>
       <Rect
-        x={50}
-        y={50}
+        x={x + 50}
+        y={y + 50}
         width={1820}
         height={150}
         fill="white"
@@ -15,16 +15,16 @@ const DialogBox = ({ text, onClose }) => {
         cornerRadius={10}
       />
       <Text
-        x={60}
-        y={70}
+        x={x + 60}
+        y={y + 70}
         text={text}
         fontSize={18}
         fontFamily="Calibri"
         fill="black"
       />
       <Text
-        x={1820 - 45}
-        y={55}
+        x={x + 1820 - 45}
+        y={y + 55}
         text="X"
         fontSize={18}
         fontFamily="Calibri"
