@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Stage, Layer } from 'react-konva';
-import Player from './components/player';
-import Platform from './components/platform';
-import Ground from './components/ground';
-import Ladder from './components/ladder';
-import Sign from './components/sign';
-import DialogBox from './components/dialogbox';
+import React, { useState, useEffect } from "react";
+import { Stage, Layer } from "react-konva";
+import Player from "./components/player";
+import Platform from "./components/platform";
+import Ground from "./components/ground";
+import Ladder from "./components/ladder";
+import Sign from "./components/sign";
+import DialogBox from "./components/dialogbox";
 
 const GRAVITY = 0.5;
 const JUMP_POWER = -10;
@@ -16,7 +16,7 @@ const PLAYER_SPEED = 5;
 function App() {
   const [player, setPlayer] = useState({
     x: 50,
-    y: window.innerHeight - PLAYER_HEIGHT - 41,
+    y: window.innerHeight - PLAYER_HEIGHT - 101,
     velX: 0,
     velY: 0,
     onGround: true,
@@ -24,52 +24,79 @@ function App() {
   });
 
   const [cameraX, setCameraX] = useState(0);
+  const [cameraY, setCameraY] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogText, setDialogText] = useState("");
+  const [currentSign, setCurrentSign] = useState(null);
 
   const ground = [
-    { x: 0, y: window.innerHeight - 40, width: 2000, height: 50 },
-    { x: 3900, y: window.innerHeight - 40, width: 450, height: 50 },
+    { x: 0, y: window.innerHeight - 50, width: 2000, height: 64 },
+    { x: 3900, y: window.innerHeight - 40, width: 450, height: 64 },
+    { x: 3600, y: window.innerHeight - 40, width: 150, height: 64 },
   ];
 
   const platforms = [
-    { x: 2080, y: window.innerHeight - 90, width: 200, height: 50 },
-    { x: 2400, y: window.innerHeight - 150, width: 300, height: 50 },
-    { x: 2850, y: window.innerHeight - 200, width: 150, height: 50 },
-    { x: 3150, y: window.innerHeight - 150, width: 300, height: 50 },
-    { x: 3200, y: window.innerHeight - 300, width: 100, height: 50 },
-    { x: 3400, y: window.innerHeight - 350, width: 250, height: 50 },
-    { x: 3550, y: window.innerHeight - 500, width: 200, height: 50 },
-    { x: 3900, y: window.innerHeight - 550, width: 150, height: 50 },
-    { x: 4200, y: window.innerHeight - 200, width: 300, height: 50 },
-    { x: 4650, y: window.innerHeight - 250, width: 200, height: 50 },
-    { x: 4800, y: window.innerHeight - 600, width: 100, height: 50 },
-    { x: 5000, y: window.innerHeight - 650, width: 350, height: 50 },
-    { x: 5350, y: window.innerHeight - 700, width: 150, height: 50 },
+    { x: 2080, y: window.innerHeight - 90, width: 200, height: 64 },
+    { x: 2400, y: window.innerHeight - 150, width: 300, height: 64 },
+    { x: 2850, y: window.innerHeight - 200, width: 150, height: 64 },
+    { x: 3150, y: window.innerHeight - 150, width: 300, height: 64 },
+    { x: 3200, y: window.innerHeight - 300, width: 100, height: 64 },
+    { x: 3400, y: window.innerHeight - 350, width: 250, height: 64 },
+    { x: 3550, y: window.innerHeight - 500, width: 200, height: 64 },
+    { x: 3450, y: window.innerHeight - 100, width: 150, height: 64 },
+    { x: 3900, y: window.innerHeight - 550, width: 150, height: 64 },
+    { x: 4200, y: window.innerHeight - 200, width: 300, height: 64 },
+    { x: 4650, y: window.innerHeight - 250, width: 200, height: 64 },
+    { x: 4810, y: window.innerHeight - 600, width: 100, height: 64 },
+    { x: 5000, y: window.innerHeight - 650, width: 350, height: 64 },
+    { x: 5350, y: window.innerHeight - 700, width: 150, height: 64 },
+    { x: 5450, y: window.innerHeight - 950, width: 150, height: 64 },
   ];
 
   const ladders = [
     { x: 3300, y: window.innerHeight - 300, width: 64, height: 150 },
     { x: 3500, y: window.innerHeight - 500, width: 64, height: 150 },
     { x: 4750, y: window.innerHeight - 600, width: 64, height: 350 },
+    { x: 5400, y: window.innerHeight - 950, width: 64, height: 250 },
   ];
 
   const signs = [
-    { x: 1950, y: window.innerHeight - 90, width: 100, height: 50, text: 'PLACA' },
+    {
+      x: 1900,
+      y: window.innerHeight - 100,
+      width: 64,
+      height: 50,
+      text: "Bem-vindo ao mundo do caos bravo guerreiro! Espero que esteja pronto para enfrentar o mundo de aventura que foi preparado para você",
+    },
+    {
+      x: 2500,
+      y: window.innerHeight - 200,
+      width: 64,
+      height: 50,
+      text: "Cuidado com os inimigos! Eles podem te fazer coceguinhas",
+    },
+    {
+      x: 2900,
+      y: window.innerHeight - 250,
+      width: 64,
+      height: 50,
+      text: "Tesouros aguardam aqueles que são corajosos! Ou a morte, ela também.",
+    },
   ];
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'ArrowLeft') {
+      if (e.key === "ArrowLeft") {
         setPlayer((prev) => ({ ...prev, velX: -PLAYER_SPEED }));
-      } else if (e.key === 'ArrowRight') {
+      } else if (e.key === "ArrowRight") {
         setPlayer((prev) => ({ ...prev, velX: PLAYER_SPEED }));
-      } else if (e.key === ' ' && player.onGround && !player.onLadder) {
+      } else if (e.key === " " && player.onGround && !player.onLadder) {
         setPlayer((prev) => ({ ...prev, velY: JUMP_POWER, onGround: false }));
-      } else if (e.key === 'ArrowUp' && player.onLadder) {
+      } else if (e.key === "ArrowUp" && player.onLadder) {
         setPlayer((prev) => ({ ...prev, velY: -PLAYER_SPEED }));
-      } else if (e.key === 'ArrowDown' && player.onLadder) {
+      } else if (e.key === "ArrowDown" && player.onLadder) {
         setPlayer((prev) => ({ ...prev, velY: PLAYER_SPEED }));
-      } else if (e.key === 'Enter') {
+      } else if (e.key === "Enter") {
         signs.forEach((sign) => {
           if (
             player.x + PLAYER_WIDTH > sign.x &&
@@ -77,28 +104,30 @@ function App() {
             player.y + PLAYER_HEIGHT > sign.y &&
             player.y < sign.y + sign.height
           ) {
+            setDialogText(sign.text);
             setDialogOpen(true);
+            setCurrentSign(sign);
           }
         });
       }
     };
 
     const handleKeyUp = (e) => {
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
         setPlayer((prev) => ({ ...prev, velX: 0 }));
-      } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
         setPlayer((prev) => ({ ...prev, velY: 0 }));
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [player.onGround, player.onLadder, player.x, player.y, signs]);
+  }, [player.onGround, player.onLadder, player.x, player.y, signs, dialogOpen]);
 
   useEffect(() => {
     const gameLoop = setInterval(() => {
@@ -168,9 +197,31 @@ function App() {
           }
         });
 
+        if (currentSign) {
+          if (
+            newX + PLAYER_WIDTH < currentSign.x ||
+            newX > currentSign.x + currentSign.width ||
+            newY + PLAYER_HEIGHT < currentSign.y ||
+            newY > currentSign.y + currentSign.height
+          ) {
+            setDialogOpen(false);
+            setCurrentSign(null);
+          }
+        }
+
         let newCameraX = newX - window.innerWidth / 2 + PLAYER_WIDTH / 2;
+        let newCameraY = newY - window.innerHeight / 2 + PLAYER_HEIGHT / 2;
         if (newCameraX < 0) newCameraX = 0;
-        return { ...prev, x: newX, y: newY, velY: newVelY, onGround: onGround, onLadder: onLadder };
+        if (newCameraY < 0) newCameraY = 0;
+
+        return {
+          ...prev,
+          x: newX,
+          y: newY,
+          velY: newVelY,
+          onGround: onGround,
+          onLadder: onLadder,
+        };
       });
 
       setCameraX((prev) => {
@@ -178,14 +229,20 @@ function App() {
         if (newCameraX < 0) newCameraX = 0;
         return newCameraX;
       });
+
+      setCameraY((prev) => {
+        let newCameraY = player.y - window.innerHeight / 2 + PLAYER_HEIGHT / 2;
+        if (newCameraY < 0) newCameraY = 0;
+        return newCameraY;
+      });
     }, 16);
 
     return () => clearInterval(gameLoop);
-  }, [player.x, player.y, platforms, ladders]);
+  }, [player.x, player.y, platforms, ladders, currentSign]);
 
   return (
     <Stage width={window.innerWidth} height={window.innerHeight}>
-      <Layer x={-cameraX}>
+      <Layer x={-cameraX} y={-cameraY}>
         {ground.map((g, i) => (
           <Ground key={i} {...g} />
         ))}
@@ -200,7 +257,11 @@ function App() {
         ))}
         <Player x={player.x} y={player.y} />
       </Layer>
-      {dialogOpen && <DialogBox text="Você interagiu com a placa!" onClose={() => setDialogOpen(false)} />}
+      {dialogOpen && (
+        <Layer>
+          <DialogBox text={dialogText} onClose={() => setDialogOpen(false)} />
+        </Layer>
+      )}
     </Stage>
   );
 }

@@ -1,9 +1,9 @@
-import React, { useRef, useEffect } from 'react';
-import { Rect } from 'react-konva';
-import useImage from 'use-image';
+import React, { useRef, useEffect } from "react";
+import { Rect } from "react-konva";
+import useImage from "use-image";
 
 const Ground = ({ x, y, width, height }) => {
-  const [image] = useImage('ground.png');
+  const [image] = useImage("ground.png");
   const groundRef = useRef();
 
   useEffect(() => {
