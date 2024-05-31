@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 
 const useKeyControls = (player, setPlayer, signs, setDialogText, setDialogOpen, setCurrentSign) => {
-    const acceleration = 4;
+    const acceleration = 5;
     const maxVelocity = 7; 
-    const jumpVelocity = -10; 
+    const jumpVelocity = -9; 
   
     const handleJump = () => {
         if (player.onGround && !player.onLadder) {
