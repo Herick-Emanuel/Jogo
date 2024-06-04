@@ -1,15 +1,19 @@
-import React, { useState, useRef } from 'react';
-import { Stage, Layer } from 'react-konva';
-import Player from './components/player';
-import Platform from './components/platform';
-import Ground from './components/ground/ground';
-import Ground2 from './components/ground/ground2';
-import Ladder from './components/ladder';
-import Sign from './components/sign';
-import DialogBox from './components/dialogbox';
-import useKeyControls from './hooks/useKeyControls';
-import useGameLoop from './hooks/useGameLoop';
-import useZoom from './hooks/useZoom';
+import React, { useState, useRef } from "react";
+import { Stage, Layer, Rect } from "react-konva";
+import Player from "./components/player";
+import Platform from "./components/platform";
+import Ground from "./components/ground/ground";
+import Ground2 from "./components/ground/ground2";
+import Ladder from "./components/ladder";
+import Sign from "./components/sign";
+import DialogBox from "./components/dialogbox";
+import Enemy from "./components/enemy";
+import useKeyControls from "./hooks/useKeyControls";
+import useGameLoop from "./hooks/useGameLoop";
+import useZoom from "./hooks/useZoom";
+import useEnemyLogic from "./hooks/useEnemyLogic";
+import useAttackLogic from "./hooks/useAttackLogic";
+import Projectile from "./components/projectile";
 
 const PLAYER_WIDTH = 50;
 const PLAYER_HEIGHT = 50;
@@ -22,15 +26,51 @@ const App = () => {
     velY: 0,
     onGround: true,
     onLadder: false,
-    facing: 'right',
+    facing: "right",
     isMoving: false,
+    health: 100,
   });
 
   const [cameraX, setCameraX] = useState(0);
   const [cameraY, setCameraY] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogText, setDialogText] = useState('');
+  const [dialogText, setDialogText] = useState("");
   const [currentSign, setCurrentSign] = useState(null);
+  const [attacks, setAttacks] = useState([]);
+  const [enemies, setEnemies] = useState([
+    {
+      x: 2080,
+      y: window.innerHeight - 140,
+      velX: 1,
+      velY: 0,
+      width: 50,
+      height: 50,
+    },
+    {
+      x: 2570,
+      y: window.innerHeight - 200,
+      velX: -1,
+      velY: 0,
+      width: 50,
+      height: 50,
+    },
+    {
+      x: 3200,
+      y: window.innerHeight - 350,
+      velX: 1,
+      velY: 0,
+      width: 50,
+      height: 50,
+    },
+    {
+      x: 4650,
+      y: window.innerHeight - 300,
+      velX: -1,
+      velY: 0,
+      width: 50,
+      height: 50,
+    },
+  ]);
 
   const stageRef = useRef(null);
 
@@ -77,27 +117,48 @@ const App = () => {
       y: window.innerHeight - 90,
       width: 64,
       height: 50,
-      text: 'Bem-vindo ao mundo do caos, bravo guerreiro! Espero que esteja pronto para enfrentar o mundo de aventura que foi preparado para você',
+      text: "Bem-vindo ao mundo do caos, bravo guerreiro! Espero que esteja pronto para enfrentar o mundo de aventura que foi preparado para você. e claro para ATIRAR ESPADAS, basta pressionar X",
     },
     {
       x: 2500,
       y: window.innerHeight - 200,
       width: 64,
       height: 50,
-      text: 'Cuidado com os inimigos! Eles podem te fazer coceguinhas',
+      text: "Cuidado com os inimigos! Eles podem te fazer coceguinhas",
     },
     {
       x: 2900,
       y: window.innerHeight - 250,
       width: 64,
       height: 50,
-      text: 'Tesouros aguardam aqueles que são corajosos! Ou a morte, ela também.',
+      text: "Tesouros aguardam aqueles que são corajosos! Ou a morte, ela também.",
     },
   ];
 
-  useKeyControls(player, setPlayer, signs, setDialogText, setDialogOpen, setCurrentSign);
-  useGameLoop(player, setPlayer, ground, platforms, ladders, setCameraX, setCameraY, currentSign, setDialogOpen, setCurrentSign);
+  useKeyControls(
+    player,
+    setPlayer,
+    signs,
+    setDialogText,
+    setDialogOpen,
+    setCurrentSign,
+    setAttacks
+  );
+  useGameLoop(
+    player,
+    setPlayer,
+    ground,
+    platforms,
+    ladders,
+    setCameraX,
+    setCameraY,
+    currentSign,
+    setDialogOpen,
+    setCurrentSign
+  );
   useZoom(stageRef);
+  useEnemyLogic(enemies, setEnemies, player, setPlayer);
+  useAttackLogic(attacks, setAttacks, enemies, setEnemies);
 
   return (
     <Stage
@@ -126,7 +187,18 @@ const App = () => {
         {signs.map((sign, i) => (
           <Sign key={i} {...sign} />
         ))}
-        <Player x={player.x} y={player.y} isMoving={player.isMoving} facing={player.facing} />
+        {enemies.map((enemy, i) => (
+          <Enemy key={i} {...enemy} />
+        ))}
+        {attacks.map((attack, i) => (
+          <Projectile key={i} {...attack} />
+        ))}
+        <Player
+          x={player.x}
+          y={player.y}
+          isMoving={player.isMoving}
+          facing={player.facing}
+        />
       </Layer>
       {dialogOpen && (
         <Layer>
@@ -140,6 +212,6 @@ const App = () => {
       )}
     </Stage>
   );
-}
+};
 
 export default App;

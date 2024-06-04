@@ -1,5 +1,5 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { Image } from 'react-konva';
+import React, { useRef, useEffect, useState } from "react";
+import { Image } from "react-konva";
 
 const Player = ({ x, y, isMoving, facing }) => {
   const [frameIndex, setFrameIndex] = useState(0);
@@ -9,8 +9,8 @@ const Player = ({ x, y, isMoving, facing }) => {
     const loadImages = () => {
       const img1 = new window.Image();
       const img2 = new window.Image();
-      img1.src = 'player.png';
-      img2.src = 'warrior.png';
+      img1.src = "player.png";
+      img2.src = "warrior.png";
 
       img1.onload = () => {
         setImages((prevImages) => [img1, prevImages[1]]);
@@ -44,8 +44,8 @@ const Player = ({ x, y, isMoving, facing }) => {
       y={y}
       width={50}
       height={50}
-      scaleX={facing === 'left' ? -1 : 1}
-      offsetX={facing === 'left' ? 50 : 0}
+      scaleX={facing === "left" ? -1 : 1}
+      offsetX={facing === "left" ? 50 : 0}
     />
   );
 };
