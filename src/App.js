@@ -117,7 +117,7 @@ const App = () => {
       y: window.innerHeight - 90,
       width: 64,
       height: 50,
-      text: "Bem-vindo ao mundo do caos, bravo guerreiro! Espero que esteja pronto para enfrentar o mundo de aventura que foi preparado para você. e claro para ATIRAR ESPADAS, basta pressionar X",
+      text: "Bem-vindo ao mundo do caos, bravo guerreiro! Espero que esteja pronto para enfrentar o mundo de aventura que foi preparado para você. \n E claro para ATIRAR ESPADAS, basta pressionar X, para pular, Espaço.",
     },
     {
       x: 2500,
