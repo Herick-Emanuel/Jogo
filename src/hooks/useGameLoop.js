@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-const useGameLoop = (player, setPlayer, ground, platforms, ladders, setCameraX, setCameraY, currentSign, setDialogOpen, setCurrentSign) => {
+const useGameLoop = (player, setPlayer, ground, platforms, ladders, setCameraX, setCameraY, currentSign, setDialogOpen, setCurrentSign, currentBlock, setPuzzleOpen, setCurrentBlock, puzzleOpen) => {
   useEffect(() => {
     const update = () => {
       setPlayer((prev) => {
@@ -59,10 +59,25 @@ const useGameLoop = (player, setPlayer, ground, platforms, ladders, setCameraX, 
           }
         };
 
+        const checkBlockCollision = () => {
+          if (currentBlock && puzzleOpen) {
+            if (
+              newX + 50 < currentBlock.x ||
+              newX > currentBlock.x + currentBlock.width ||
+              newY + 50 < currentBlock.y ||
+              newY > currentBlock.y + currentBlock.height
+            ) {
+              setPuzzleOpen(false);
+              setCurrentBlock(null);
+            }
+          }
+        };
+
         checkGroundCollision();
         checkPlatformCollision();
         checkLadderCollision();
         checkSignCollision();
+        checkBlockCollision();
 
         let newCameraX = newX - window.innerWidth / 2 + 25;
         if (newCameraX < 0) newCameraX = 0;
@@ -86,7 +101,7 @@ const useGameLoop = (player, setPlayer, ground, platforms, ladders, setCameraX, 
     const gameLoop = setInterval(update, 16);
 
     return () => clearInterval(gameLoop);
-  }, [player, setPlayer, ground, platforms, ladders, setCameraX, setCameraY, currentSign, setDialogOpen, setCurrentSign]);
+  }, [player, setPlayer, ground, platforms, ladders, setCameraX, setCameraY, currentSign, setDialogOpen, setCurrentSign, currentBlock, setPuzzleOpen, setCurrentBlock, puzzleOpen]);
 };
 
 export default useGameLoop;

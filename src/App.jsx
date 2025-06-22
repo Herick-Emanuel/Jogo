@@ -1,5 +1,5 @@
-import React, { useState, useRef } from "react";
-import { Stage, Layer, Rect } from "react-konva";
+import React, { useState, useRef, useEffect } from "react";
+import { Stage, Layer, Rect, Image } from "react-konva";
 import Player from "./components/player";
 import Platform from "./components/platform";
 import Ground from "./components/ground/ground";
@@ -14,6 +14,10 @@ import useZoom from "./hooks/useZoom";
 import useEnemyLogic from "./hooks/useEnemyLogic";
 import useAttackLogic from "./hooks/useAttackLogic";
 import Projectile from "./components/projectile";
+import Block1 from "./components/Block1";
+import PuzzleCastle from "./components/PuzzleCastle";
+import { useImage } from "react-konva-utils";
+import Konva from "konva";
 
 const PLAYER_WIDTH = 50;
 const PLAYER_HEIGHT = 50;
@@ -72,7 +76,23 @@ const App = () => {
     },
   ]);
 
+  const [puzzleOpen, setPuzzleOpen] = useState(false);
+  const [currentBlock, setCurrentBlock] = useState(null);
+  const [backgroundCastle, setBackgroundCastle] = useState(false);
+  const [castleImage] = useImage("castle.avif");
+
   const stageRef = useRef(null);
+  const castleBgRef = useRef(null);
+
+  useEffect(() => {
+    if (backgroundCastle && castleBgRef.current) {
+      castleBgRef.current.to({
+        opacity: 1,
+        duration: 1.5,
+        easing: Konva.Easings.EaseInOut,
+      });
+    }
+  }, [backgroundCastle]);
 
   const ground = [
     { x: 0, y: window.innerHeight - 40, width: 2000, height: 64 },
@@ -135,6 +155,15 @@ const App = () => {
     },
   ];
 
+  const blocks1 = [
+    {
+      x: 3250,
+      y: window.innerHeight - 200,
+      width: 64,
+      height: 64,
+    },
+  ];
+
   useKeyControls(
     player,
     setPlayer,
@@ -142,7 +171,10 @@ const App = () => {
     setDialogText,
     setDialogOpen,
     setCurrentSign,
-    setAttacks
+    setAttacks,
+    blocks1,
+    puzzleOpen ? () => {} : setPuzzleOpen,
+    puzzleOpen ? () => {} : setCurrentBlock
   );
   useGameLoop(
     player,
@@ -154,63 +186,94 @@ const App = () => {
     setCameraY,
     currentSign,
     setDialogOpen,
-    setCurrentSign
+    setCurrentSign,
+    currentBlock,
+    setPuzzleOpen,
+    setCurrentBlock,
+    puzzleOpen
   );
   useZoom(stageRef);
   useEnemyLogic(enemies, setEnemies, player, setPlayer);
   useAttackLogic(attacks, setAttacks, enemies, setEnemies);
 
   return (
-    <Stage
-      ref={stageRef}
-      width={window.innerWidth}
-      height={window.innerHeight}
-      scaleX={1}
-      scaleY={1}
-      draggable
-      x={-cameraX}
-      y={-cameraY}
-    >
-      <Layer>
-        {ground.map((g, i) => (
-          <Ground key={i} {...g} />
-        ))}
-        {ground2.map((g, i) => (
-          <Ground2 key={i} {...g} />
-        ))}
-        {platforms.map((platform, i) => (
-          <Platform key={i} {...platform} />
-        ))}
-        {ladders.map((ladder, i) => (
-          <Ladder key={i} {...ladder} />
-        ))}
-        {signs.map((sign, i) => (
-          <Sign key={i} {...sign} />
-        ))}
-        {enemies.map((enemy, i) => (
-          <Enemy key={i} {...enemy} />
-        ))}
-        {attacks.map((attack, i) => (
-          <Projectile key={i} {...attack} />
-        ))}
-        <Player
-          x={player.x}
-          y={player.y}
-          isMoving={player.isMoving}
-          facing={player.facing}
-        />
-      </Layer>
-      {dialogOpen && (
+    <>
+      <div style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: "100vw",
+        height: "100vh",
+        zIndex: 0,
+        pointerEvents: "none"
+      }}>
+        <Stage width={window.innerWidth} height={window.innerHeight} x={0} y={0} draggable={false}>
+          <Layer>
+            <Image
+              ref={castleBgRef}
+              image={castleImage}
+              x={0}
+              y={0}
+              width={window.innerWidth}
+              height={window.innerHeight}
+              opacity={0}
+              listening={false}
+            />
+          </Layer>
+        </Stage>
+      </div>
+
+      <Stage
+        ref={stageRef}
+        width={window.innerWidth}
+        height={window.innerHeight}
+        draggable
+        x={-cameraX}
+        y={-cameraY}
+        style={{ position: "relative", zIndex: 1 }}
+      >
         <Layer>
-          <DialogBox
-            x={cameraX}
-            y={cameraY}
-            text={dialogText}
-            onClose={() => setDialogOpen(false)}
-          />
+          {ground.map((g, i) => <Ground key={i} {...g} />)}
+          {ground2.map((g, i) => <Ground2 key={i} {...g} />)}
+          {platforms.map((platform, i) => <Platform key={i} {...platform} />)}
+          {ladders.map((ladder, i) => <Ladder key={i} {...ladder} />)}
+          {signs.map((sign, i) => <Sign key={i} {...sign} />)}
+          {enemies.map((enemy, i) => <Enemy key={i} {...enemy} />)}
+          {attacks.map((attack, i) => <Projectile key={i} {...attack} />)}
+          {blocks1.map((block, i) => <Block1 key={i} {...block} />)}
+          <Player x={player.x} y={player.y} isMoving={player.isMoving} facing={player.facing} />
         </Layer>
+
+        {dialogOpen && (
+          <Layer>
+            <DialogBox x={cameraX} y={cameraY} text={dialogText} onClose={() => setDialogOpen(false)} />
+          </Layer>
+        )}
+      </Stage>
+
+      {puzzleOpen && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            zIndex: 9999,
+          }}
+        >
+          <Stage width={window.innerWidth} height={window.innerHeight}>
+            <Layer>
+              <PuzzleCastle
+                imageSrc="castle.avif"
+                onClose={() => setPuzzleOpen(false)}
+                onSolved={() => setBackgroundCastle(true)}
+              />
+            </Layer>
+          </Stage>
+        </div>
       )}
-    </Stage>
+    </>
   );
 };
 

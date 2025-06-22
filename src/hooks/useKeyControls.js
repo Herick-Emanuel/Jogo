@@ -7,7 +7,10 @@ const useKeyControls = (
   setDialogText,
   setDialogOpen,
   setCurrentSign,
-  setAttacks
+  setAttacks,
+  blocks1 = [],
+  setPuzzleOpen = () => {},
+  setCurrentBlock = () => {}
 ) => {
   const acceleration = 5;
   const maxVelocity = 7;
@@ -54,6 +57,18 @@ const useKeyControls = (
     });
   };
 
+  const handleBlock1Interaction = () => {
+    blocks1.forEach((block) => {
+      const distance = Math.sqrt(
+        Math.pow(player.x - block.x, 2) + Math.pow(player.y - block.y, 2)
+      );
+      if (distance < 50) {
+        setPuzzleOpen(true);
+        setCurrentBlock(block);
+      }
+    });
+  };
+
   const handleAttack = () => {
     const attack = {
       x: player.x + (player.facing === "right" ? 50 : -50),
@@ -84,8 +99,9 @@ const useKeyControls = (
         break;
       case "Enter":
         handleDialogInteraction();
+        handleBlock1Interaction();
         break;
-      case "x": // Tecla para atacar
+      case "x":
         handleAttack();
         break;
       default:
