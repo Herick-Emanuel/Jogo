@@ -24,9 +24,12 @@ import Health from "./components/Health";
 import GameOverScreen from "./components/GameOverScreen";
 import HeartCollectable from "./components/HeartCollectable";
 import { levels } from "./levelData";
+import Guardian from "./components/guardian";
+import GuardianDialogBox from "./components/GuardianDialogBox";
 
 const App = () => {
-  const [level, setLevel] = useState(1);
+  const savedLevel = parseInt(localStorage.getItem('currentLevel')) || 1;
+  const [level, setLevel] = useState(savedLevel);
   const [levelData, setLevelData] = useState(levels[level]);
 
   const [player, setPlayer] = useState({
@@ -48,6 +51,7 @@ const App = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogText, setDialogText] = useState("");
   const [currentSign, setCurrentSign] = useState(null);
+  const [isGuardianDialog, setIsGuardianDialog] = useState(false);
   const [attacks, setAttacks] = useState([]);
   const [enemies, setEnemies] = useState(levelData.enemies);
 
@@ -64,6 +68,7 @@ const App = () => {
   const [heartCollectables, setHeartCollectables] = useState(levelData.heartCollectables);
 
   const loadLevel = (levelNumber) => {
+    localStorage.setItem('currentLevel', levelNumber);
     const newLevelData = levels[levelNumber];
     setLevel(levelNumber);
     setLevelData(newLevelData);
@@ -154,6 +159,7 @@ const App = () => {
     signs,
     blocks1,
     torches,
+    guardian,
   } = levelData;
 
   const takeDamage = (amount) => {
@@ -174,18 +180,20 @@ const App = () => {
     setDialogText,
     setDialogOpen,
     setCurrentSign,
+    setIsGuardianDialog,
     attacks,
     setAttacks,
     blocks1,
     puzzleOpen ? () => {} : setPuzzleOpen,
-    puzzleOpen ? () => {} : setCurrentBlock
+    puzzleOpen ? () => {} : setCurrentBlock,
+    guardian
   );
   useGameLoop(
     player,
     setPlayer,
-    ground,
-    platforms,
-    ladders,
+    levelData.ground,
+    levelData.platforms,
+    levelData.ladders,
     setCameraX,
     setCameraY,
     currentSign,
@@ -195,7 +203,10 @@ const App = () => {
     setPuzzleOpen,
     setCurrentBlock,
     puzzleOpen,
-    takeDamage
+    takeDamage,
+    guardian,
+    isGuardianDialog,
+    setIsGuardianDialog
   );
   useCameraMovement(stageRef);
   useEnemyLogic(enemies, setEnemies, player, setPlayer, takeDamage);
@@ -217,7 +228,7 @@ const App = () => {
 
   return (
     <>
-      <BackgroundImage showCastle={backgroundCastle} />
+      <BackgroundImage showCastle={level >= 2} />
 
       <Stage
         ref={stageRef}
@@ -241,12 +252,30 @@ const App = () => {
           {heartCollectables.map((heart) => (
             <HeartCollectable key={heart.id} x={heart.x} y={heart.y} />
           ))}
+          {guardian && <Guardian {...guardian} />}
           <Player x={player.x} y={player.y} isMoving={player.isMoving} facing={player.facing} isBlinking={player.isBlinking} />
         </Layer>
 
         {dialogOpen && (
           <Layer>
-            <DialogBox x={cameraX} y={cameraY} text={dialogText} onClose={() => setDialogOpen(false)} />
+            {isGuardianDialog ? (
+              <GuardianDialogBox
+                x={cameraX}
+                y={cameraY}
+                text={dialogText}
+                onClose={() => {
+                  setDialogOpen(false);
+                  setIsGuardianDialog(false);
+                }}
+              />
+            ) : (
+              <DialogBox
+                x={cameraX}
+                y={cameraY}
+                text={dialogText}
+                onClose={() => setDialogOpen(false)}
+              />
+            )}
           </Layer>
         )}
       </Stage>

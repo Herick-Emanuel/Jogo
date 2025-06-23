@@ -124,23 +124,23 @@ export const levels = {
     playerStart: { x: 50, y: window.innerHeight - 50 - 41 },
   },
   2: {
-    ground: [{ x: 0, y: window.innerHeight - 40, width: 2000, height: 64 }],
-    ground2: [{ x: 0, y: window.innerHeight - -15, width: 2000, height: 128 }],
+    ground: [{ x: 0, y: window.innerHeight - 40, width: 600, height: 64 }],
+    ground2: [{ x: 0, y: window.innerHeight - -15, width: 600, height: 128 }],
     platforms: [],
     ladders: [],
-    signs: [
-      {
-        x: 300,
-        y: window.innerHeight - 90,
-        width: 64,
-        height: 50,
-        text: "Bem-vindo à Fase 2!",
-      },
-    ],
+    signs: [],
     enemies: [],
     blocks1: [],
     torches: [],
     heartCollectables: [],
+    guardian: {
+      x: 150,
+      y: window.innerHeight - 150,
+      width: 128,
+      height: 128,
+      text: "Saudações, nobre guerreiro. Vejo que é novo por estas bandas, prazer, sou o guardião do castelo, irei lhe apresentar ao rei, para que possa estar coletando sua missão, vejo que veio da floresta, então deve ser um forte guerreiro. Bem, eu também já fui um aventureiro então sei o quão divertido é caçar criaturas, haha. Enfim, pode seguir pela estrada, espero que pegue uma missão desafiadora!"
+    },
+    background: 'castle.avif',
     playerStart: { x: 50, y: window.innerHeight - 50 - 49 },
   },
 }; 

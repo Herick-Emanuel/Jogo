@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-const useGameLoop = (player, setPlayer, ground, platforms, ladders, setCameraX, setCameraY, currentSign, setDialogOpen, setCurrentSign, currentBlock, setPuzzleOpen, setCurrentBlock, puzzleOpen, takeDamage) => {
+const useGameLoop = (player, setPlayer, ground, platforms, ladders, setCameraX, setCameraY, currentSign, setDialogOpen, setCurrentSign, currentBlock, setPuzzleOpen, setCurrentBlock, puzzleOpen, takeDamage, guardian, isGuardianDialog, setIsGuardianDialog) => {
   const animationFrameRef = useRef();
   const lastTimeRef = useRef(0);
 
@@ -89,6 +89,17 @@ const useGameLoop = (player, setPlayer, ground, platforms, ladders, setCameraX, 
           }
         };
 
+        if (isGuardianDialog && guardian) {
+          const distance = Math.sqrt(
+            Math.pow(newX - guardian.x, 2) +
+              Math.pow(newY - guardian.y, 2)
+          );
+          if (distance > 200) {
+            setDialogOpen(false);
+            setIsGuardianDialog(false);
+          }
+        }
+
         checkGroundCollision();
         checkPlatformCollision();
         checkLadderCollision();
@@ -156,7 +167,10 @@ const useGameLoop = (player, setPlayer, ground, platforms, ladders, setCameraX, 
     setPuzzleOpen,
     setCurrentBlock,
     puzzleOpen,
-    takeDamage
+    takeDamage,
+    guardian,
+    isGuardianDialog,
+    setIsGuardianDialog
   ]);
 };
 
