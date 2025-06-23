@@ -1,12 +1,21 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 const useGameLoop = (player, setPlayer, ground, platforms, ladders, setCameraX, setCameraY, currentSign, setDialogOpen, setCurrentSign, currentBlock, setPuzzleOpen, setCurrentBlock, puzzleOpen) => {
+  const animationFrameRef = useRef();
+  const lastTimeRef = useRef(0);
+
   useEffect(() => {
-    const update = () => {
+    const update = (currentTime) => {
+      const deltaTime = currentTime - lastTimeRef.current;
+      lastTimeRef.current = currentTime;
+
+      // Normalizar para 60 FPS (16.67ms)
+      const normalizedDelta = Math.min(deltaTime, 32) / 16.67;
+
       setPlayer((prev) => {
-        let newVelY = prev.onLadder ? prev.velY : prev.velY + 0.5;
-        let newX = prev.x + prev.velX;
-        let newY = prev.y + newVelY;
+        let newVelY = prev.onLadder ? prev.velY : prev.velY + 0.5 * normalizedDelta;
+        let newX = prev.x + prev.velX * normalizedDelta;
+        let newY = prev.y + newVelY * normalizedDelta;
         let onGround = false;
         let onLadder = false;
 
@@ -52,7 +61,11 @@ const useGameLoop = (player, setPlayer, ground, platforms, ladders, setCameraX, 
 
         const checkSignCollision = () => {
           if (currentSign) {
-            if (newX + 50 < currentSign.x || newX > currentSign.x + currentSign.width || newY + 50 < currentSign.y || newY > currentSign.y + currentSign.height) {
+            const distance = Math.sqrt(
+              Math.pow(newX - currentSign.x, 2) +
+                Math.pow(newY - currentSign.y, 2)
+            );
+            if (distance > 100) {
               setDialogOpen(false);
               setCurrentSign(null);
             }
@@ -61,12 +74,11 @@ const useGameLoop = (player, setPlayer, ground, platforms, ladders, setCameraX, 
 
         const checkBlockCollision = () => {
           if (currentBlock && puzzleOpen) {
-            if (
-              newX + 50 < currentBlock.x ||
-              newX > currentBlock.x + currentBlock.width ||
-              newY + 50 < currentBlock.y ||
-              newY > currentBlock.y + currentBlock.height
-            ) {
+            const distance = Math.sqrt(
+              Math.pow(newX - currentBlock.x, 2) +
+                Math.pow(newY - currentBlock.y, 2)
+            );
+            if (distance > 100) {
               setPuzzleOpen(false);
               setCurrentBlock(null);
             }
@@ -78,6 +90,12 @@ const useGameLoop = (player, setPlayer, ground, platforms, ladders, setCameraX, 
         checkLadderCollision();
         checkSignCollision();
         checkBlockCollision();
+
+        if (newY > window.innerHeight + 500) {
+          newX = 50;
+          newY = window.innerHeight - 91; 
+          newVelY = 0;
+        }
 
         let newCameraX = newX - window.innerWidth / 2 + 25;
         if (newCameraX < 0) newCameraX = 0;
@@ -96,12 +114,33 @@ const useGameLoop = (player, setPlayer, ground, platforms, ladders, setCameraX, 
           onLadder: onLadder,
         };
       });
+
+      animationFrameRef.current = requestAnimationFrame(update);
     };
 
-    const gameLoop = setInterval(update, 16);
+    animationFrameRef.current = requestAnimationFrame(update);
 
-    return () => clearInterval(gameLoop);
-  }, [player, setPlayer, ground, platforms, ladders, setCameraX, setCameraY, currentSign, setDialogOpen, setCurrentSign, currentBlock, setPuzzleOpen, setCurrentBlock, puzzleOpen]);
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [
+    player,
+    setPlayer,
+    ground,
+    platforms,
+    ladders,
+    setCameraX,
+    setCameraY,
+    currentSign,
+    setDialogOpen,
+    setCurrentSign,
+    currentBlock,
+    setPuzzleOpen,
+    setCurrentBlock,
+    puzzleOpen,
+  ]);
 };
 
 export default useGameLoop;

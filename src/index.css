@@ -1,9 +1,11 @@
+@import url(https://db.onlinewebfonts.com/c/00561b492d88a5287a5def1e83a34882?family=Gumela);
+
 /* src/index.css */
 body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  font-family: 'Arial', sans-serif;
+  font-family: 'Gumela', 'Arial', sans-serif;
 }
 
 #root {

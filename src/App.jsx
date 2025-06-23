@@ -10,7 +10,7 @@ import DialogBox from "./components/dialogbox";
 import Enemy from "./components/enemy";
 import useKeyControls from "./hooks/useKeyControls";
 import useGameLoop from "./hooks/useGameLoop";
-import useZoom from "./hooks/useZoom";
+import useCameraMovement from "./hooks/useCameraMovement";
 import useEnemyLogic from "./hooks/useEnemyLogic";
 import useAttackLogic from "./hooks/useAttackLogic";
 import Projectile from "./components/projectile";
@@ -18,6 +18,8 @@ import Block1 from "./components/Block1";
 import PuzzleCastle from "./components/PuzzleCastle";
 import { useImage } from "react-konva-utils";
 import Konva from "konva";
+import Torch from './components/torch';
+import BackgroundImage from "./components/backgroundImage";
 
 const PLAYER_WIDTH = 50;
 const PLAYER_HEIGHT = 50;
@@ -137,14 +139,14 @@ const App = () => {
       y: window.innerHeight - 90,
       width: 64,
       height: 50,
-      text: "Bem-vindo ao mundo do caos, bravo guerreiro! Espero que esteja pronto para enfrentar o mundo de aventura que foi preparado para você. \n E claro para ATIRAR ESPADAS, basta pressionar X, para pular, Espaço.",
+      text: "Bem-vindo ao mundo do caos, bravo guerreiro! Espero que esteja pronto para enfrentar o mundo de aventura que foi preparado para você. Temos diversos desafios que lhe serão propostos! Este é um mundo de aventuras, aonde você foi escolhido para ser nosso guerreiro, espero que não se incomode. Irei lhe esclareçer algumas coisas para arremessar suas espadas, basta pressionar X, para que possa pular, pressione Espaço. Não tenho mais nada para lhe passar, agora você está por conta própria, tenha cuidado em sua jornada, pois ela será realmente desafiadora.",
     },
     {
       x: 2500,
       y: window.innerHeight - 200,
       width: 64,
       height: 50,
-      text: "Cuidado com os inimigos! Eles podem te fazer coceguinhas",
+      text: "Cuidado com os inimigos! Eles podem te fazer coceguinhas, hahaha, não. Mas falando sério agora, espero que não desista de sua jornada, ela promete ser recompensadora e desafiadora, ou nem tanto quato pensa, mas garanto que irá se diverir",
     },
     {
       x: 2900,
@@ -153,15 +155,27 @@ const App = () => {
       height: 50,
       text: "Tesouros aguardam aqueles que são corajosos! Ou a morte, ela também.",
     },
+    {
+      x: 3230,
+      y: window.innerHeight - 200,
+      width: 64,
+      height: 50,
+      text: "Clique Enter para abrir interagir com basicamente tudo, assim como as placas.",
+    },
   ];
 
   const blocks1 = [
     {
-      x: 3250,
-      y: window.innerHeight - 200,
+      x: 3580,
+      y: window.innerHeight - 425,
       width: 64,
       height: 64,
     },
+  ];
+
+  const torches = [
+    { x: 3500, y: window.innerHeight - 250, width: 64, height: 64 },
+    { x: 3650, y: window.innerHeight - 425, width: 64, height: 64 },
   ];
 
   useKeyControls(
@@ -171,6 +185,7 @@ const App = () => {
     setDialogText,
     setDialogOpen,
     setCurrentSign,
+    attacks,
     setAttacks,
     blocks1,
     puzzleOpen ? () => {} : setPuzzleOpen,
@@ -192,36 +207,13 @@ const App = () => {
     setCurrentBlock,
     puzzleOpen
   );
-  useZoom(stageRef);
+  useCameraMovement(stageRef);
   useEnemyLogic(enemies, setEnemies, player, setPlayer);
-  useAttackLogic(attacks, setAttacks, enemies, setEnemies);
+  useAttackLogic(attacks, setAttacks, enemies, setEnemies, cameraX);
 
   return (
     <>
-      <div style={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        width: "100vw",
-        height: "100vh",
-        zIndex: 0,
-        pointerEvents: "none"
-      }}>
-        <Stage width={window.innerWidth} height={window.innerHeight} x={0} y={0} draggable={false}>
-          <Layer>
-            <Image
-              ref={castleBgRef}
-              image={castleImage}
-              x={0}
-              y={0}
-              width={window.innerWidth}
-              height={window.innerHeight}
-              opacity={0}
-              listening={false}
-            />
-          </Layer>
-        </Stage>
-      </div>
+      <BackgroundImage showCastle={backgroundCastle} />
 
       <Stage
         ref={stageRef}
@@ -241,6 +233,7 @@ const App = () => {
           {enemies.map((enemy, i) => <Enemy key={i} {...enemy} />)}
           {attacks.map((attack, i) => <Projectile key={i} {...attack} />)}
           {blocks1.map((block, i) => <Block1 key={i} {...block} />)}
+          {torches.map((torch, i) => <Torch key={i} {...torch} />)}
           <Player x={player.x} y={player.y} isMoving={player.isMoving} facing={player.facing} />
         </Layer>
 

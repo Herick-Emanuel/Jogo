@@ -1,35 +1,76 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
-const useAttackLogic = (attacks, setAttacks, enemies, setEnemies) => {
+const useAttackLogic = (attacks, setAttacks, enemies, setEnemies, cameraX) => {
+  const PROJECTILE_SPEED = 5.8; 
+  const animationFrameRef = useRef();
+  const lastTimeRef = useRef(0);
+
   useEffect(() => {
-    const gameLoop = setInterval(() => {
+    const update = (currentTime) => {
+      const deltaTime = currentTime - lastTimeRef.current;
+      lastTimeRef.current = currentTime;
+
+      const normalizedDelta = Math.min(deltaTime, 32) / 16.67;
+
       setAttacks((prevAttacks) =>
         prevAttacks.map((attack) => ({
           ...attack,
-          x: attack.direction === "right" ? attack.x + 5 : attack.x - 5,
+          x: attack.direction === "right" 
+            ? attack.x + PROJECTILE_SPEED * normalizedDelta 
+            : attack.x - PROJECTILE_SPEED * normalizedDelta,
         }))
       );
 
       setEnemies((prevEnemies) =>
         prevEnemies.filter((enemy) => {
+          const enemyWidth = 50;
+          const enemyHeight = 50;
+          
           return !attacks.some((attack) => {
-            const distance = Math.sqrt(
-              Math.pow(attack.x - enemy.x, 2) + Math.pow(attack.y - enemy.y, 2)
+            const projectileWidth = 30;
+            const projectileHeight = 30;
+            
+            const enemyLeft = enemy.x;
+            const enemyRight = enemy.x + enemyWidth;
+            const enemyTop = enemy.y;
+            const enemyBottom = enemy.y + enemyHeight;
+            
+            const projectileLeft = attack.x;
+            const projectileRight = attack.x + projectileWidth;
+            const projectileTop = attack.y;
+            const projectileBottom = attack.y + projectileHeight;
+            
+            const collision = !(
+              projectileLeft > enemyRight ||
+              projectileRight < enemyLeft ||
+              projectileTop > enemyBottom ||
+              projectileBottom < enemyTop
             );
-            return distance < 30;
+            
+            return collision;
           });
         })
       );
 
       setAttacks((prevAttacks) =>
         prevAttacks.filter(
-          (attack) => attack.x > 0 && attack.x < window.innerWidth
+          (attack) =>
+            attack.x > cameraX - 50 &&
+            attack.x < cameraX + window.innerWidth + 50
         )
       );
-    }, 1000 / 60);
 
-    return () => clearInterval(gameLoop);
-  }, [attacks, enemies, setAttacks, setEnemies]);
+      animationFrameRef.current = requestAnimationFrame(update);
+    };
+
+    animationFrameRef.current = requestAnimationFrame(update);
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [attacks, enemies, setAttacks, setEnemies, cameraX]);
 };
 
 export default useAttackLogic;

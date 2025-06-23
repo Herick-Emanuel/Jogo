@@ -1,36 +1,32 @@
 import React from "react";
 import { Rect, Text, Group } from "react-konva";
+import { useImage } from "react-konva-utils";
 
 const DialogBox = ({ x, y, text, onClose }) => {
+  const [backgroundImage] = useImage("/PlacaBackground.png");
+
   return (
-    <Group>
+    <Group x={x + 50} y={y + 50}>
       <Rect
-        x={x + 50}
-        y={y + 50}
         width={1820}
         height={150}
-        fill="white"
+        fillPatternImage={backgroundImage}
+        fillPatternRepeat="repeat"
         stroke="black"
         strokeWidth={2}
         cornerRadius={10}
       />
       <Text
-        x={x + 60}
-        y={y + 70}
+        x={10}
+        y={20}
         text={text}
-        fontSize={18}
-        fontFamily="Calibri"
+        fontSize={22}
+        fontFamily="Gumela"
         fill="black"
-      />
-      <Text
-        x={x + 1820 - 45}
-        y={y + 55}
-        text="X"
-        fontSize={18}
-        fontFamily="Calibri"
-        fill="white"
-        onClick={onClose}
-        onTap={onClose}
+        width={1800}
+        padding={10}
+        lineHeight={1.4}
+        align="center"
       />
     </Group>
   );

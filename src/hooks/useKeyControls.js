@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 const useKeyControls = (
   player,
@@ -7,14 +7,15 @@ const useKeyControls = (
   setDialogText,
   setDialogOpen,
   setCurrentSign,
+  attacks,
   setAttacks,
   blocks1 = [],
   setPuzzleOpen = () => {},
   setCurrentBlock = () => {}
 ) => {
-  const acceleration = 5;
-  const maxVelocity = 7;
-  const jumpVelocity = -9;
+  const maxVelocity = 4.7;
+  const jumpVelocity = -8.5;
+  const pressedKeys = useRef(new Set());
 
   const handleJump = () => {
     if (player.onGround && !player.onLadder) {
@@ -22,20 +23,29 @@ const useKeyControls = (
     }
   };
 
-  const handleMovement = (direction) => {
-    if (direction === "left") {
-      setPlayer((prev) => ({
+  const updateMovement = () => {
+    setPlayer((prev) => {
+      let newVelX = 0;
+      let newFacing = prev.facing;
+      let isMoving = false;
+
+      if (pressedKeys.current.has("ArrowLeft")) {
+        newVelX = -maxVelocity;
+        newFacing = "left";
+        isMoving = true;
+      } else if (pressedKeys.current.has("ArrowRight")) {
+        newVelX = maxVelocity;
+        newFacing = "right";
+        isMoving = true;
+      }
+
+      return {
         ...prev,
-        velX: Math.max(-maxVelocity, prev.velX - acceleration),
-        facing: "left",
-      }));
-    } else if (direction === "right") {
-      setPlayer((prev) => ({
-        ...prev,
-        velX: Math.min(maxVelocity, prev.velX + acceleration),
-        facing: "right",
-      }));
-    }
+        velX: newVelX,
+        facing: newFacing,
+        isMoving: isMoving,
+      };
+    });
   };
 
   const handleLadderMovement = (direction) => {
@@ -70,6 +80,9 @@ const useKeyControls = (
   };
 
   const handleAttack = () => {
+    if (attacks.length >= 3) {
+      return; 
+    }
     const attack = {
       x: player.x + (player.facing === "right" ? 50 : -50),
       y: player.y,
@@ -81,12 +94,9 @@ const useKeyControls = (
   const handleKeyDown = (e) => {
     switch (e.key) {
       case "ArrowLeft":
-        handleMovement("left");
-        setPlayer((prev) => ({ ...prev, isMoving: true }));
-        break;
       case "ArrowRight":
-        handleMovement("right");
-        setPlayer((prev) => ({ ...prev, isMoving: true }));
+        pressedKeys.current.add(e.key);
+        updateMovement();
         break;
       case " ":
         handleJump();
@@ -113,7 +123,8 @@ const useKeyControls = (
     switch (e.key) {
       case "ArrowLeft":
       case "ArrowRight":
-        setPlayer((prev) => ({ ...prev, velX: 0, isMoving: false }));
+        pressedKeys.current.delete(e.key);
+        updateMovement();
         break;
       case " ":
       case "ArrowUp":
@@ -135,7 +146,7 @@ const useKeyControls = (
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [player, setPlayer, signs, setDialogText, setDialogOpen, setCurrentSign]);
+  }, [player, setPlayer, signs, setDialogText, setDialogOpen, setCurrentSign, attacks, setAttacks]);
 };
 
 export default useKeyControls;
