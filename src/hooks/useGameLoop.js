@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-const useGameLoop = (player, setPlayer, ground, platforms, ladders, setCameraX, setCameraY, currentSign, setDialogOpen, setCurrentSign, currentBlock, setPuzzleOpen, setCurrentBlock, puzzleOpen) => {
+const useGameLoop = (player, setPlayer, ground, platforms, ladders, setCameraX, setCameraY, currentSign, setDialogOpen, setCurrentSign, currentBlock, setPuzzleOpen, setCurrentBlock, puzzleOpen, takeDamage) => {
   const animationFrameRef = useRef();
   const lastTimeRef = useRef(0);
 
@@ -9,7 +9,6 @@ const useGameLoop = (player, setPlayer, ground, platforms, ladders, setCameraX, 
       const deltaTime = currentTime - lastTimeRef.current;
       lastTimeRef.current = currentTime;
 
-      // Normalizar para 60 FPS (16.67ms)
       const normalizedDelta = Math.min(deltaTime, 32) / 16.67;
 
       setPlayer((prev) => {
@@ -18,6 +17,11 @@ const useGameLoop = (player, setPlayer, ground, platforms, ladders, setCameraX, 
         let newY = prev.y + newVelY * normalizedDelta;
         let onGround = false;
         let onLadder = false;
+        let newFallStartY = prev.fallStartY;
+
+        if (!prev.onGround && !prev.onLadder && newFallStartY === 0) {
+          newFallStartY = prev.y;
+        }
 
         const checkGroundCollision = () => {
           ground.forEach((g) => {
@@ -91,7 +95,18 @@ const useGameLoop = (player, setPlayer, ground, platforms, ladders, setCameraX, 
         checkSignCollision();
         checkBlockCollision();
 
+        if (onGround && newFallStartY !== 0) {
+          const fallDistance = newY - newFallStartY;
+          if (fallDistance > 500) {
+            takeDamage(1);
+          } else if (fallDistance > 250) {
+            takeDamage(0.5);
+          }
+          newFallStartY = 0;
+        }
+
         if (newY > window.innerHeight + 500) {
+          takeDamage(0.5);
           newX = 50;
           newY = window.innerHeight - 91; 
           newVelY = 0;
@@ -112,6 +127,7 @@ const useGameLoop = (player, setPlayer, ground, platforms, ladders, setCameraX, 
           velY: newVelY,
           onGround: onGround,
           onLadder: onLadder,
+          fallStartY: newFallStartY,
         };
       });
 
@@ -140,6 +156,7 @@ const useGameLoop = (player, setPlayer, ground, platforms, ladders, setCameraX, 
     setPuzzleOpen,
     setCurrentBlock,
     puzzleOpen,
+    takeDamage
   ]);
 };
 

@@ -20,6 +20,8 @@ import { useImage } from "react-konva-utils";
 import Konva from "konva";
 import Torch from './components/torch';
 import BackgroundImage from "./components/backgroundImage";
+import Health from "./components/Health";
+import GameOverScreen from "./components/GameOverScreen";
 
 const PLAYER_WIDTH = 50;
 const PLAYER_HEIGHT = 50;
@@ -34,7 +36,9 @@ const App = () => {
     onLadder: false,
     facing: "right",
     isMoving: false,
-    health: 100,
+    health: 5,
+    fallStartY: 0,
+    isBlinking: false,
   });
 
   const [cameraX, setCameraX] = useState(0);
@@ -86,6 +90,8 @@ const App = () => {
   const stageRef = useRef(null);
   const castleBgRef = useRef(null);
 
+  const [gameOver, setGameOver] = useState(false);
+
   useEffect(() => {
     if (backgroundCastle && castleBgRef.current) {
       castleBgRef.current.to({
@@ -95,6 +101,22 @@ const App = () => {
       });
     }
   }, [backgroundCastle]);
+
+  useEffect(() => {
+    if (player.health <= 0 && !gameOver) {
+      setGameOver(true);
+    }
+  }, [player.health, gameOver]);
+
+  // Blinking effect ao tomar dano
+  useEffect(() => {
+    if (player.isBlinking) {
+      const timeout = setTimeout(() => {
+        setPlayer((prev) => ({ ...prev, isBlinking: false }));
+      }, 1000);
+      return () => clearTimeout(timeout);
+    }
+  }, [player.isBlinking]);
 
   const ground = [
     { x: 0, y: window.innerHeight - 40, width: 2000, height: 64 },
@@ -178,6 +200,18 @@ const App = () => {
     { x: 3650, y: window.innerHeight - 425, width: 64, height: 64 },
   ];
 
+  // Função centralizada para tomar dano
+  const takeDamage = (amount) => {
+    setPlayer((prev) => {
+      if (prev.isBlinking || prev.health <= 0) return prev;
+      return {
+        ...prev,
+        health: Math.max(prev.health - amount, 0),
+        isBlinking: true,
+      };
+    });
+  };
+
   useKeyControls(
     player,
     setPlayer,
@@ -205,11 +239,33 @@ const App = () => {
     currentBlock,
     setPuzzleOpen,
     setCurrentBlock,
-    puzzleOpen
+    puzzleOpen,
+    takeDamage
   );
   useCameraMovement(stageRef);
-  useEnemyLogic(enemies, setEnemies, player, setPlayer);
+  useEnemyLogic(enemies, setEnemies, player, setPlayer, takeDamage);
   useAttackLogic(attacks, setAttacks, enemies, setEnemies, cameraX);
+
+  const handlePlay = () => {
+    setPlayer({
+      x: 50,
+      y: window.innerHeight - PLAYER_HEIGHT - 41,
+      velX: 0,
+      velY: 0,
+      onGround: true,
+      onLadder: false,
+      facing: "right",
+      isMoving: false,
+      health: 5,
+      fallStartY: 0,
+      isBlinking: false,
+    });
+    setGameOver(false);
+  };
+
+  const handleExit = () => {
+    window.close();
+  };
 
   return (
     <>
@@ -234,7 +290,11 @@ const App = () => {
           {attacks.map((attack, i) => <Projectile key={i} {...attack} />)}
           {blocks1.map((block, i) => <Block1 key={i} {...block} />)}
           {torches.map((torch, i) => <Torch key={i} {...torch} />)}
-          <Player x={player.x} y={player.y} isMoving={player.isMoving} facing={player.facing} />
+          <Player x={player.x} y={player.y} isMoving={player.isMoving} facing={player.facing} isBlinking={player.isBlinking} />
+        </Layer>
+
+        <Layer>
+          <Health health={player.health} x={cameraX + window.innerWidth - (5 * 35) - 20} y={cameraY + 20}/>
         </Layer>
 
         {dialogOpen && (
@@ -265,6 +325,10 @@ const App = () => {
             </Layer>
           </Stage>
         </div>
+      )}
+
+      {gameOver && (
+        <GameOverScreen onPlay={handlePlay} onExit={handleExit} />
       )}
     </>
   );

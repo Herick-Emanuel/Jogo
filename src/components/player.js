@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Image } from "react-konva";
 
-const Player = ({ x, y, isMoving, facing }) => {
+const Player = ({ x, y, isMoving, facing, isBlinking }) => {
   const [frameIndex, setFrameIndex] = useState(0);
   const [images, setImages] = useState([null, null]);
 
@@ -46,6 +46,7 @@ const Player = ({ x, y, isMoving, facing }) => {
       height={50}
       scaleX={facing === "left" ? -1 : 1}
       offsetX={facing === "left" ? 50 : 0}
+      opacity={isBlinking ? 0.5 : 1}
     />
   );
 };
