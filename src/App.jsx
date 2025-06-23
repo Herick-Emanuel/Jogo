@@ -23,14 +23,15 @@ import BackgroundImage from "./components/backgroundImage";
 import Health from "./components/Health";
 import GameOverScreen from "./components/GameOverScreen";
 import HeartCollectable from "./components/HeartCollectable";
-
-const PLAYER_WIDTH = 50;
-const PLAYER_HEIGHT = 50;
+import { levels } from "./levelData";
 
 const App = () => {
+  const [level, setLevel] = useState(1);
+  const [levelData, setLevelData] = useState(levels[level]);
+
   const [player, setPlayer] = useState({
-    x: 50,
-    y: window.innerHeight - PLAYER_HEIGHT - 41,
+    x: levelData.playerStart.x,
+    y: levelData.playerStart.y,
     velX: 0,
     velY: 0,
     onGround: true,
@@ -48,40 +49,7 @@ const App = () => {
   const [dialogText, setDialogText] = useState("");
   const [currentSign, setCurrentSign] = useState(null);
   const [attacks, setAttacks] = useState([]);
-  const [enemies, setEnemies] = useState([
-    {
-      x: 2080,
-      y: window.innerHeight - 140,
-      velX: 1,
-      velY: 0,
-      width: 50,
-      height: 50,
-    },
-    {
-      x: 2570,
-      y: window.innerHeight - 200,
-      velX: -1,
-      velY: 0,
-      width: 50,
-      height: 50,
-    },
-    {
-      x: 3200,
-      y: window.innerHeight - 350,
-      velX: 1,
-      velY: 0,
-      width: 50,
-      height: 50,
-    },
-    {
-      x: 4650,
-      y: window.innerHeight - 300,
-      velX: -1,
-      velY: 0,
-      width: 50,
-      height: 50,
-    },
-  ]);
+  const [enemies, setEnemies] = useState(levelData.enemies);
 
   const [puzzleOpen, setPuzzleOpen] = useState(false);
   const [currentBlock, setCurrentBlock] = useState(null);
@@ -93,10 +61,37 @@ const App = () => {
 
   const [gameOver, setGameOver] = useState(false);
 
-  const [heartCollectables, setHeartCollectables] = useState([
-    { x: 2200, y: window.innerHeight - 120, id: 1 },
-    { x: 5550, y: window.innerHeight - 980, id: 2 }
-  ]);
+  const [heartCollectables, setHeartCollectables] = useState(levelData.heartCollectables);
+
+  const loadLevel = (levelNumber) => {
+    const newLevelData = levels[levelNumber];
+    setLevel(levelNumber);
+    setLevelData(newLevelData);
+
+    setPlayer((prev) => ({
+      ...prev,
+      x: newLevelData.playerStart.x,
+      y: newLevelData.playerStart.y,
+      velX: 0,
+      velY: 0,
+      onGround: true,
+      onLadder: false,
+    }));
+    setEnemies(newLevelData.enemies);
+    setHeartCollectables(newLevelData.heartCollectables);
+    setAttacks([]);
+    setCameraX(0);
+    setCameraY(0);
+    setPuzzleOpen(false);
+  };
+
+  const handlePuzzleSolved = () => {
+    setBackgroundCastle(true);
+    setTimeout(() => {
+      loadLevel(2);
+      setBackgroundCastle(false);
+    }, 2000);
+  };
 
   useEffect(() => {
     if (backgroundCastle && castleBgRef.current) {
@@ -142,7 +137,7 @@ const App = () => {
         if (isColliding && player.health < 5) {
           setPlayer((prev) => ({
             ...prev,
-            health: Math.min(prev.health + 0.5, 5),
+            health: Math.min(prev.health + 1, 5),
           }));
           return false;
         }
@@ -151,87 +146,15 @@ const App = () => {
     });
   }, [player.x, player.y]);
 
-  const ground = [
-    { x: 0, y: window.innerHeight - 40, width: 2000, height: 64 },
-    { x: 3900, y: window.innerHeight - 40, width: 450, height: 64 },
-    { x: 3600, y: window.innerHeight - 40, width: 150, height: 64 },
-  ];
-
-  const ground2 = [
-    { x: 0, y: window.innerHeight - -15, width: 2000, height: 128 },
-    { x: 3900, y: window.innerHeight - -15, width: 450, height: 128 },
-    { x: 3600, y: window.innerHeight - -15, width: 150, height: 128 },
-  ];
-
-  const platforms = [
-    { x: 2080, y: window.innerHeight - 90, width: 200, height: 50 },
-    { x: 2400, y: window.innerHeight - 150, width: 300, height: 50 },
-    { x: 2850, y: window.innerHeight - 200, width: 150, height: 50 },
-    { x: 3150, y: window.innerHeight - 150, width: 300, height: 50 },
-    { x: 3200, y: window.innerHeight - 300, width: 100, height: 50 },
-    { x: 3400, y: window.innerHeight - 350, width: 250, height: 50 },
-    { x: 3550, y: window.innerHeight - 500, width: 200, height: 50 },
-    { x: 3450, y: window.innerHeight - 100, width: 150, height: 50 },
-    { x: 3900, y: window.innerHeight - 550, width: 150, height: 50 },
-    { x: 4200, y: window.innerHeight - 200, width: 300, height: 50 },
-    { x: 4650, y: window.innerHeight - 250, width: 200, height: 50 },
-    { x: 4810, y: window.innerHeight - 600, width: 100, height: 50 },
-    { x: 5000, y: window.innerHeight - 650, width: 350, height: 50 },
-    { x: 5350, y: window.innerHeight - 700, width: 150, height: 50 },
-    { x: 5450, y: window.innerHeight - 950, width: 150, height: 50 },
-  ];
-
-  const ladders = [
-    { x: 3300, y: window.innerHeight - 300, width: 64, height: 150 },
-    { x: 3500, y: window.innerHeight - 500, width: 64, height: 150 },
-    { x: 4750, y: window.innerHeight - 600, width: 64, height: 350 },
-    { x: 5400, y: window.innerHeight - 950, width: 64, height: 250 },
-  ];
-
-  const signs = [
-    {
-      x: 1900,
-      y: window.innerHeight - 90,
-      width: 64,
-      height: 50,
-      text: "Bem-vindo ao mundo do caos, bravo guerreiro! Espero que esteja pronto para enfrentar o mundo de aventura que foi preparado para você. Temos diversos desafios que lhe serão propostos! Este é um mundo de aventuras, aonde você foi escolhido para ser nosso guerreiro, espero que não se incomode. Irei lhe esclareçer algumas coisas para arremessar suas espadas, basta pressionar X, para que possa pular, pressione Espaço. Não tenho mais nada para lhe passar, agora você está por conta própria, tenha cuidado em sua jornada, pois ela será realmente desafiadora.",
-    },
-    {
-      x: 2500,
-      y: window.innerHeight - 200,
-      width: 64,
-      height: 50,
-      text: "Cuidado com os inimigos! Eles podem te fazer coceguinhas, hahaha, não. Mas falando sério agora, espero que não desista de sua jornada, ela promete ser recompensadora e desafiadora, ou nem tanto quato pensa, mas garanto que irá se diverir",
-    },
-    {
-      x: 2900,
-      y: window.innerHeight - 250,
-      width: 64,
-      height: 50,
-      text: "Tesouros aguardam aqueles que são corajosos! Ou a morte, ela também.",
-    },
-    {
-      x: 3230,
-      y: window.innerHeight - 200,
-      width: 64,
-      height: 50,
-      text: "Clique Enter para abrir interagir com basicamente tudo, assim como as placas.",
-    },
-  ];
-
-  const blocks1 = [
-    {
-      x: 3580,
-      y: window.innerHeight - 425,
-      width: 64,
-      height: 64,
-    },
-  ];
-
-  const torches = [
-    { x: 3500, y: window.innerHeight - 250, width: 64, height: 64 },
-    { x: 3650, y: window.innerHeight - 425, width: 64, height: 64 },
-  ];
+  const {
+    ground,
+    ground2,
+    platforms,
+    ladders,
+    signs,
+    blocks1,
+    torches,
+  } = levelData;
 
   const takeDamage = (amount) => {
     setPlayer((prev) => {
@@ -279,19 +202,12 @@ const App = () => {
   useAttackLogic(attacks, setAttacks, enemies, setEnemies, cameraX);
 
   const handlePlay = () => {
-    setPlayer({
-      x: 50,
-      y: window.innerHeight - PLAYER_HEIGHT - 41,
-      velX: 0,
-      velY: 0,
-      onGround: true,
-      onLadder: false,
-      facing: "right",
-      isMoving: false,
+    loadLevel(level);
+    setPlayer((prev) => ({
+      ...prev,
       health: 5,
-      fallStartY: 0,
       isBlinking: false,
-    });
+    }));
     setGameOver(false);
   };
 
@@ -327,6 +243,12 @@ const App = () => {
           ))}
           <Player x={player.x} y={player.y} isMoving={player.isMoving} facing={player.facing} isBlinking={player.isBlinking} />
         </Layer>
+
+        {dialogOpen && (
+          <Layer>
+            <DialogBox x={cameraX} y={cameraY} text={dialogText} onClose={() => setDialogOpen(false)} />
+          </Layer>
+        )}
       </Stage>
 
       <div style={{
@@ -358,7 +280,7 @@ const App = () => {
               <PuzzleCastle
                 imageSrc="castle.avif"
                 onClose={() => setPuzzleOpen(false)}
-                onSolved={() => setBackgroundCastle(true)}
+                onSolved={handlePuzzleSolved}
               />
             </Layer>
           </Stage>
