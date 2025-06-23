@@ -22,6 +22,7 @@ import Torch from './components/torch';
 import BackgroundImage from "./components/backgroundImage";
 import Health from "./components/Health";
 import GameOverScreen from "./components/GameOverScreen";
+import HeartCollectable from "./components/HeartCollectable";
 
 const PLAYER_WIDTH = 50;
 const PLAYER_HEIGHT = 50;
@@ -92,6 +93,11 @@ const App = () => {
 
   const [gameOver, setGameOver] = useState(false);
 
+  const [heartCollectables, setHeartCollectables] = useState([
+    { x: 2200, y: window.innerHeight - 120, id: 1 },
+    { x: 5550, y: window.innerHeight - 980, id: 2 }
+  ]);
+
   useEffect(() => {
     if (backgroundCastle && castleBgRef.current) {
       castleBgRef.current.to({
@@ -108,7 +114,6 @@ const App = () => {
     }
   }, [player.health, gameOver]);
 
-  // Blinking effect ao tomar dano
   useEffect(() => {
     if (player.isBlinking) {
       const timeout = setTimeout(() => {
@@ -117,6 +122,34 @@ const App = () => {
       return () => clearTimeout(timeout);
     }
   }, [player.isBlinking]);
+
+  useEffect(() => {
+    setHeartCollectables((prevHearts) => {
+      return prevHearts.filter((heart) => {
+        const playerLeft = player.x;
+        const playerRight = player.x + 50;
+        const playerTop = player.y;
+        const playerBottom = player.y + 50;
+        const heartLeft = heart.x;
+        const heartRight = heart.x + 30;
+        const heartTop = heart.y;
+        const heartBottom = heart.y + 30;
+        const isColliding =
+          playerLeft < heartRight &&
+          playerRight > heartLeft &&
+          playerTop < heartBottom &&
+          playerBottom > heartTop;
+        if (isColliding && player.health < 5) {
+          setPlayer((prev) => ({
+            ...prev,
+            health: Math.min(prev.health + 0.5, 5),
+          }));
+          return false;
+        }
+        return true;
+      });
+    });
+  }, [player.x, player.y]);
 
   const ground = [
     { x: 0, y: window.innerHeight - 40, width: 2000, height: 64 },
@@ -200,7 +233,6 @@ const App = () => {
     { x: 3650, y: window.innerHeight - 425, width: 64, height: 64 },
   ];
 
-  // Função centralizada para tomar dano
   const takeDamage = (amount) => {
     setPlayer((prev) => {
       if (prev.isBlinking || prev.health <= 0) return prev;
@@ -290,19 +322,25 @@ const App = () => {
           {attacks.map((attack, i) => <Projectile key={i} {...attack} />)}
           {blocks1.map((block, i) => <Block1 key={i} {...block} />)}
           {torches.map((torch, i) => <Torch key={i} {...torch} />)}
+          {heartCollectables.map((heart) => (
+            <HeartCollectable key={heart.id} x={heart.x} y={heart.y} />
+          ))}
           <Player x={player.x} y={player.y} isMoving={player.isMoving} facing={player.facing} isBlinking={player.isBlinking} />
         </Layer>
-
-        <Layer>
-          <Health health={player.health} x={cameraX + window.innerWidth - (5 * 35) - 20} y={cameraY + 20}/>
-        </Layer>
-
-        {dialogOpen && (
-          <Layer>
-            <DialogBox x={cameraX} y={cameraY} text={dialogText} onClose={() => setDialogOpen(false)} />
-          </Layer>
-        )}
       </Stage>
+
+      <div style={{
+        position: 'fixed',
+        top: 20,
+        right: 20,
+        zIndex: 1000
+      }}>
+        <Stage width={5 * 35} height={30} style={{background: 'transparent'}}>
+          <Layer>
+            <Health health={player.health} x={0} y={0} />
+          </Layer>
+        </Stage>
+      </div>
 
       {puzzleOpen && (
         <div

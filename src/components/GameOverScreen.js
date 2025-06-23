@@ -15,26 +15,26 @@ const GameOverScreen = ({ onPlay, onExit }) => {
       justifyContent: 'center',
       flexDirection: 'column',
     }}>
-      <img src="/PlayExit.png" alt="Game Over" style={{ width: 150, marginBottom: 30 }} />
-      <div style={{ display: 'flex', gap: 20 }}>
+      <div style={{ position: 'relative', width: 150, height: 150, marginBottom: 30 }}>
+        <img src="/PlayExit.png" alt="Game Over" style={{ width: 150, height: 150, display: 'block' }} />
         <button onClick={onPlay} style={{
-          width: 70,
-          height: 35,
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          width: 150,
+          height: 75,
           background: 'transparent',
           border: 'none',
-          position: 'absolute',
-          left: 'calc(50% - 60px)',
-          top: 'calc(50% - 20px)',
           cursor: 'pointer',
         }} aria-label="Play" />
         <button onClick={onExit} style={{
-          width: 70,
-          height: 35,
+          position: 'absolute',
+          left: 0,
+          top: 75,
+          width: 150,
+          height: 75,
           background: 'transparent',
           border: 'none',
-          position: 'absolute',
-          left: 'calc(50% - 60px)',
-          top: 'calc(50% + 20px)',
           cursor: 'pointer',
         }} aria-label="Exit" />
       </div>
