@@ -10,7 +10,6 @@ import DialogBox from "./components/dialogbox";
 import Enemy from "./components/enemy";
 import useKeyControls from "./hooks/useKeyControls";
 import useGameLoop from "./hooks/useGameLoop";
-import useCameraMovement from "./hooks/useCameraMovement";
 import useEnemyLogic from "./hooks/useEnemyLogic";
 import useAttackLogic from "./hooks/useAttackLogic";
 import Projectile from "./components/projectile";
@@ -208,9 +207,6 @@ const App = () => {
     isGuardianDialog,
     setIsGuardianDialog
   );
-  useCameraMovement(stageRef);
-  useEnemyLogic(enemies, setEnemies, player, setPlayer, takeDamage);
-  useAttackLogic(attacks, setAttacks, enemies, setEnemies, cameraX);
 
   const handlePlay = () => {
     loadLevel(level);
@@ -234,7 +230,6 @@ const App = () => {
         ref={stageRef}
         width={window.innerWidth}
         height={window.innerHeight}
-        draggable
         x={-cameraX}
         y={-cameraY}
         style={{ position: "relative", zIndex: 1 }}
@@ -245,7 +240,7 @@ const App = () => {
           {platforms.map((platform, i) => <Platform key={i} {...platform} />)}
           {ladders.map((ladder, i) => <Ladder key={i} {...ladder} />)}
           {signs.map((sign, i) => <Sign key={i} {...sign} />)}
-          {enemies.map((enemy, i) => <Enemy key={i} {...enemy} />)}
+          {enemies.map((enemy, i) => <Enemy key={i} {...enemy} playerX={player.x} />)}
           {attacks.map((attack, i) => <Projectile key={i} {...attack} />)}
           {blocks1.map((block, i) => <Block1 key={i} {...block} />)}
           {torches.map((torch, i) => <Torch key={i} {...torch} />)}

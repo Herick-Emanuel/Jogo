@@ -17,10 +17,10 @@ const Projectile = ({ x, y, direction }) => {
       image={image}
       x={x}
       y={y}
-      width={30}
-      height={30}
-      offsetX={1}
-      offsetY={-10}
+      width={64}
+      height={64}
+      offsetX={-1}
+      offsetY={10}
       scaleX={direction === "left" ? -1 : 1}
     />
   );

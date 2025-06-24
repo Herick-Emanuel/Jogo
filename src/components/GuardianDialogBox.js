@@ -32,7 +32,7 @@ const GuardianDialogBox = ({ x, y, text, onClose }) => {
   }, []);
 
   const dialogWidth = window.innerWidth * 0.8;
-  const dialogHeight = 180;
+  const dialogHeight = 200;
   const animOffset = Math.sin(frame / 10) * 6;
   const dialogX = x + (window.innerWidth - dialogWidth) / 2;
   const dialogY = y + window.innerHeight - dialogHeight - 20 + animOffset;
@@ -64,21 +64,20 @@ const GuardianDialogBox = ({ x, y, text, onClose }) => {
           crop={{
             x: 0,
             y: 0,
-            width: 718,
-            height: 628
+            width: 370,
+            height: 288
           }}
         />
       )}
       <Text
         x={dialogX + 30}
-        y={dialogY + 40}
+        y={dialogY + 30}
         text={displayedText}
         fontSize={24}
         fontFamily="Gumela"
         fontStyle="bold"
         fill="black"
         width={dialogWidth - imageWidth - 80}
-        padding={10}
         lineHeight={1.2}
         align="center"
       />

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Image } from "react-konva";
 
-const Enemy = ({ x, y }) => {
+const Enemy = ({ x, y, playerX }) => {
   const [image, setImage] = useState(null);
 
   useEffect(() => {
@@ -12,7 +12,19 @@ const Enemy = ({ x, y }) => {
     };
   }, []);
 
-  return <Image image={image} x={x} y={y} width={50} height={50} />;
+  const facingLeft = playerX < x;
+
+  return (
+    <Image
+      image={image}
+      x={x}
+      y={y}
+      width={64}
+      height={64}
+      scaleX={facingLeft ? -1 : 1}
+      offsetX={facingLeft ? 50 : 0}
+    />
+  );
 };
 
 export default Enemy;

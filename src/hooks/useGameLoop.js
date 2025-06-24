@@ -23,10 +23,11 @@ const useGameLoop = (player, setPlayer, ground, platforms, ladders, setCameraX, 
           newFallStartY = prev.y;
         }
 
+        const PLAYER_HEIGHT = 50;
         const checkGroundCollision = () => {
           ground.forEach((g) => {
-            if (newY + 50 > g.y && prev.y + 50 <= g.y && newX + 50 > g.x && newX < g.x + g.width) {
-              newY = g.y - 50;
+            if (newY + PLAYER_HEIGHT > g.y && prev.y + PLAYER_HEIGHT <= g.y && newX + 50 > g.x && newX < g.x + g.width) {
+              newY = g.y - PLAYER_HEIGHT;
               newVelY = 0;
               onGround = true;
             }
@@ -35,8 +36,8 @@ const useGameLoop = (player, setPlayer, ground, platforms, ladders, setCameraX, 
 
         const checkPlatformCollision = () => {
           platforms.forEach((platform) => {
-            if (newY + 50 > platform.y && prev.y + 50 <= platform.y && newX + 50 > platform.x && newX < platform.x + platform.width) {
-              newY = platform.y - 50;
+            if (newY + PLAYER_HEIGHT > platform.y && prev.y + PLAYER_HEIGHT <= platform.y && newX + 50 > platform.x && newX < platform.x + platform.width) {
+              newY = platform.y - PLAYER_HEIGHT;
               newVelY = 0;
               onGround = true;
             }
@@ -44,7 +45,7 @@ const useGameLoop = (player, setPlayer, ground, platforms, ladders, setCameraX, 
               newY = platform.y + platform.height;
               newVelY = 0;
             }
-            if (newX + 50 > platform.x && newX < platform.x + platform.width && newY + 50 > platform.y && newY < platform.y + platform.height) {
+            if (newX + 50 > platform.x && newX < platform.x + platform.width && newY + PLAYER_HEIGHT > platform.y && newY < platform.y + platform.height) {
               if (prev.velX > 0) {
                 newX = platform.x - 50;
               } else if (prev.velX < 0) {
@@ -125,7 +126,7 @@ const useGameLoop = (player, setPlayer, ground, platforms, ladders, setCameraX, 
 
         let newCameraX = newX - window.innerWidth / 2 + 25;
         if (newCameraX < 0) newCameraX = 0;
-        let newCameraY = newY - window.innerHeight / 2 + 25;
+        let newCameraY = newY - window.innerHeight / 2 + 25 - 265;
         if (newCameraY < 0) newCameraY = 0;
 
         setCameraX(newCameraX);

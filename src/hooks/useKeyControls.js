@@ -18,9 +18,15 @@ const useKeyControls = (
   const maxVelocity = 4.7;
   const jumpVelocity = -8.5;
   const pressedKeys = useRef(new Set());
+  const playerRef = useRef(player);
+
+  useEffect(() => {
+    playerRef.current = player;
+  }, [player]);
 
   const handleJump = () => {
-    if (player.onGround && !player.onLadder) {
+    const currentPlayer = playerRef.current;
+    if (currentPlayer.onGround && !currentPlayer.onLadder) {
       setPlayer((prev) => ({ ...prev, velY: jumpVelocity, onGround: false }));
     }
   };
